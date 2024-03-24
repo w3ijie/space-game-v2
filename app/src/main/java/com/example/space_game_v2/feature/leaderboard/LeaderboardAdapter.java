@@ -31,6 +31,7 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
         LeaderboardEntry entry = leaderboardEntryList.get(position);
         holder.usernameView.setText(entry.getUsername());
         holder.scoreView.setText(String.valueOf(entry.getScore()));
+        holder.rankView.setText(String.valueOf(position + 1));
     }
 
     @Override
@@ -39,12 +40,13 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
     }
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
-        TextView usernameView, scoreView;
+        TextView usernameView, scoreView, rankView;
 
         public MyViewHolder(View view) {
             super(view);
             usernameView = view.findViewById(R.id.username);
             scoreView = view.findViewById(R.id.score);
+            rankView = view.findViewById(R.id.rank);
         }
     }
 }
