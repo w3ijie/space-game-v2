@@ -1,4 +1,4 @@
-package com.example.space_game_v2;
+package com.example.space_game_v2.feature.leaderboard;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +12,8 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.space_game_v2.BuildConfig;
+import com.example.space_game_v2.R;
 import com.example.space_game_v2.utils.JwtUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
