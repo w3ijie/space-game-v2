@@ -1,5 +1,6 @@
-package com.example.space_game_v2;
+package com.example.space_game_v2.feature.main;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -8,6 +9,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.example.space_game_v2.R;
+import com.example.space_game_v2.feature.leaderboard.LeaderboardActivity;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -26,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void accessScoreBoard(View v) {
         // Code to access scoreboard here
-        v.setEnabled(false); // Disables the view to check if function is linked
+        v.setEnabled(true);
+        startActivity(new Intent(MainActivity.this, LeaderboardActivity.class));
     }
 }
