@@ -39,33 +39,51 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     private long lastSpawnTime = System.currentTimeMillis(); // Last spawn time for a spaceship
 // Inside ScrollingBackgroundView class
 
-    public void approveNearestSpaceship() {
+    public boolean approveNearestSpaceship() {
         if (!spaceships.isEmpty()) {
             Spaceship nearestSpaceship = spaceships.get(0); // Assuming this is the nearest one
-            if ("money".equals(nearestSpaceship.type)) {
-                economy += 100; // Increment economy for moneyship
-            }
             spaceships.remove(0); // Remove the nearest spaceship
+
+            if ("bomb".equals(nearestSpaceship.type)) {
+                // Mistakenly approved a bombship
+                return false;
+            } else if ("money".equals(nearestSpaceship.type)) {
+                economy += 100; // Increment economy for moneyship
+                return true; // Correctly approved a moneyship
+            }
         }
+        return true; // Return true by default to not decrement a life if no spaceship is present
     }
+
 
     // Getter for economy value to be used in GameActivity
     public int getEconomy() {
         return economy;
     }
 
-    public void disapproveNearestSpaceship() {
+    public boolean disapproveNearestSpaceship() {
         if (!spaceships.isEmpty()) {
-            // Get the nearest spaceship
-            Spaceship spaceship = spaceships.get(0);
+            Spaceship nearestSpaceship = spaceships.get(0); // Assuming this is the nearest one
+            // Capture the spaceship's position before removing it, to use for explosion
+            float explosionX = nearestSpaceship.x + bombShipBitmap.getWidth() / 2f;
+            float explosionY = nearestSpaceship.y + bombShipBitmap.getHeight() / 2f;
 
-            // Trigger explosion at the spaceship's location
-            triggerExplosion(spaceship.x + bombShipBitmap.getWidth() / 2f, spaceship.y + bombShipBitmap.getHeight() / 2f);
+            spaceships.remove(0); // Remove the nearest spaceship
 
-            // Remove the spaceship
-            spaceships.remove(spaceship);
+            if ("money".equals(nearestSpaceship.type)) {
+                // Mistakenly disapproved a moneyship
+                return false;
+            } else if ("bomb".equals(nearestSpaceship.type)) {
+                // Trigger explosion at the bomb ship's location
+                triggerExplosion(explosionX, explosionY);
+                // Correctly disapproved a bombship
+                return true;
+            }
         }
+        return true; // Return true by default to not decrement a life if no spaceship is present
     }
+
+
 
 
     // Constructor used when creating the view programmatically
@@ -137,6 +155,18 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
         // Implement your logic here if needed when the surface size changes
     }
+    public void stopGame() {
+        isRunning = false;  // This will stop the run loop on the next iteration
+        try {
+            if (thread != null) {
+                thread.join();  // Wait for the game loop thread to finish
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // Optional: Reset game state if needed
+    }
+
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
@@ -158,7 +188,6 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
             explosions.add(new Explosion(animDrawable, x, y));
         }
     }
-
     @Override
     public void run() {
         while (isRunning) {
@@ -176,62 +205,59 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
                     canvas.drawBitmap(backgroundBitmap, 0, backgroundY, null);
                     canvas.drawBitmap(backgroundBitmap, 0, backgroundY - backgroundBitmap.getHeight(), null);
 
-                    // Update the position of the background for scrolling effect
+                    // Update the background position for the scrolling effect
                     backgroundY += scrollSpeed;
                     if (backgroundY >= backgroundBitmap.getHeight()) {
                         backgroundY = 0;
                     }
 
-                    // Draw the scaled space station bitmap at the bottom of the screen, centered
+                    // Draw the space station at the bottom of the screen, centered
                     float spaceStationX = (canvas.getWidth() - scaledSpaceStationBitmap.getWidth()) / 2;
-                    // Draw the space station half above the bottom edge of the screen
-                    float spaceStationY = canvas.getHeight() - (scaledSpaceStationBitmap.getHeight() / 2);
+                    // Draw the space station so that half of it is above the bottom edge of the screen
+                    float spaceStationY = canvas.getHeight() - (scaledSpaceStationBitmap.getHeight() / 2f);
                     canvas.drawBitmap(scaledSpaceStationBitmap, spaceStationX, spaceStationY, null);
 
-                    // Add new spaceship at random positions and reset spawn time
+                    // Spawn new spaceships at intervals
                     if (System.currentTimeMillis() - lastSpawnTime >= 2000) {
                         spaceships.add(new Spaceship(canvas.getWidth()));
                         lastSpawnTime = System.currentTimeMillis();
-                        spaceshipSpeed += 1; // Increase the speed for the next spaceship
+                        spaceshipSpeed++; // Increment the spaceship speed for a gradual difficulty increase
                     }
 
-                    // Iterate over spaceships and draw them
+                    // Iterate over and draw spaceships
                     for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext();) {
                         Spaceship spaceship = iterator.next();
-                        spaceship.y += spaceshipSpeed; // Move the spaceship downwards
+                        spaceship.y += spaceshipSpeed;
 
-                        // Choose the bitmap based on the type of spaceship
                         Bitmap shipBitmap = spaceship.type.equals("money") ? moneyShipBitmap : bombShipBitmap;
-                        float shipX = (canvas.getWidth() - shipBitmap.getWidth()) / 2; // Center the spaceship horizontally
-                        float shipY = spaceship.y; // Current y position of spaceship
+                        float shipX = spaceship.x;
+                        float shipY = spaceship.y;
 
-                        // Draw the spaceship
                         canvas.drawBitmap(shipBitmap, shipX, shipY, null);
 
-                        // Remove spaceship when it reaches the base
-                        // Here, the ship disappears as it reaches the top edge of the space station bitmap
                         if (shipY > spaceStationY - shipBitmap.getHeight()) {
-                            iterator.remove();
+                            iterator.remove(); // Remove the spaceship when it reaches the space station
                         }
                     }
+
                     // Update and draw explosions
                     Iterator<Explosion> explosionIterator = explosions.iterator();
                     while (explosionIterator.hasNext()) {
                         Explosion explosion = explosionIterator.next();
-                        explosion.update(); // Update explosion state
-                        explosion.draw(canvas); // Draw the explosion
+                        explosion.update();
+                        explosion.draw(canvas);
 
-                        // Remove explosion if it's no longer active
-                        if (!explosion.isActive) explosionIterator.remove();
+                        if (!explosion.isActive) {
+                            explosionIterator.remove(); // Remove the explosion if it is no longer active
+                        }
                     }
-
-
 
                     holder.unlockCanvasAndPost(canvas);
                 }
             }
         }
     }
+
 
 
     public void pause() {

@@ -48,6 +48,41 @@
         android:layout_margin="16dp"/>
 
 
+    <ImageView
+        android:id="@+id/heart1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="26dp"
+        android:src="@drawable/heart_icon"
+        android:adjustViewBounds="true"
+        android:maxWidth="25dp"
+        android:maxHeight="25dp" />
+
+    <ImageView
+        android:id="@+id/heart2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/heart1"
+        android:layout_marginStart="8dp"
+        android:layout_alignTop="@id/heart1"
+        android:src="@drawable/heart_icon"
+        android:adjustViewBounds="true"
+        android:maxWidth="25dp"
+        android:maxHeight="25dp" />
+
+    <ImageView
+        android:id="@+id/heart3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/heart2"
+        android:layout_marginStart="8dp"
+        android:layout_alignTop="@id/heart2"
+        android:src="@drawable/heart_icon"
+        android:adjustViewBounds="true"
+        android:maxWidth="25dp"
+        android:maxHeight="25dp" />
+
 
 
 
