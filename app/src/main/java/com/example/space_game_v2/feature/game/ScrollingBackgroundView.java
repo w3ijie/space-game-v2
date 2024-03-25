@@ -16,9 +16,10 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     private Thread thread;
     private boolean isRunning = false;
     private Bitmap backgroundBitmap;
+    private Bitmap scaledSpaceStationBitmap; // The scaled bitmap for the space station
     private float backgroundY = 0;
     private SurfaceHolder holder;
-    private final int scrollSpeed = 5; // Adjust this value for different scroll speeds
+    private final int scrollSpeed = 3; // Adjust this value for different scroll speeds
 
     // Constructor used when creating the view programmatically
     public ScrollingBackgroundView(Context context) {
@@ -39,15 +40,21 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     }
 
     // Initialization method
-    // Initialization method
     private void init(Context context, AttributeSet attrs) {
         holder = getHolder();
         holder.addCallback(this);
 
         // Load the background bitmap
         backgroundBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.background_game);
-    }
 
+        // Load and scale the space station bitmap
+        Bitmap originalSpaceStationBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.space_station);
+        int scaleFactor = 2; // Example scale factor
+        int scaledWidth = originalSpaceStationBitmap.getWidth() / scaleFactor;
+        int scaledHeight = originalSpaceStationBitmap.getHeight() / scaleFactor;
+        scaledSpaceStationBitmap = Bitmap.createScaledBitmap(originalSpaceStationBitmap, scaledWidth, scaledHeight, false);
+        originalSpaceStationBitmap.recycle(); // Recycle the original bitmap if it's no longer needed
+    }
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
@@ -85,20 +92,26 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
             Canvas canvas = holder.lockCanvas();
             if (canvas != null) {
                 synchronized (holder) {
-                    // Clear the canvas
-                    canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
-
                     // Draw the scrolling background
                     canvas.drawBitmap(backgroundBitmap, 0, backgroundY, null);
                     canvas.drawBitmap(backgroundBitmap, 0, backgroundY - backgroundBitmap.getHeight(), null);
 
-                    // Update the position of the background
+                    // Update the position of the background for scrolling effect
                     backgroundY += scrollSpeed;
                     if (backgroundY >= backgroundBitmap.getHeight()) {
                         backgroundY = 0;
                     }
 
-                    // Draw everything to the screen
+                    // Calculate the x position to center the space station
+                    float x = (canvas.getWidth() - scaledSpaceStationBitmap.getWidth()) / 2;
+
+                    // Calculate the y position so that only half of the space station is visible
+                    // The y position will be the canvas height minus half of the space station's height
+                    float y = canvas.getHeight() - (scaledSpaceStationBitmap.getHeight() / 2);
+
+                    // Draw the scaled space station bitmap so that half is sticking out from the bottom
+                    canvas.drawBitmap(scaledSpaceStationBitmap, x, y, null);
+
                     holder.unlockCanvasAndPost(canvas);
                 }
             }
