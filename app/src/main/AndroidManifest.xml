@@ -17,9 +17,9 @@
         <activity
             android:name=".feature.game.GameActivity"
             android:exported="false" />
-        <activity
-            android:name=".feature.leaderboard.LeaderboardActivity"
-            android:exported="false" />
+<!--        <activity-->
+<!--            android:name=".feature.leaderboard.LeaderboardActivity"-->
+<!--            android:exported="false" />-->
         <activity
             android:name=".feature.main.MainActivity"
             android:exported="true">

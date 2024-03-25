@@ -10,17 +10,34 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.space_game_v2.R;
 
+
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+
 public class GameActivity extends AppCompatActivity {
+
+    private ScrollingBackgroundView scrollingBackgroundView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_game);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
+        // Initialize your ScrollingBackgroundView
+        scrollingBackgroundView = findViewById(R.id.scrolling_background_view);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Pause the background scrolling when the activity is paused
+        scrollingBackgroundView.pause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Resume the background scrolling when the activity is resumed
+        scrollingBackgroundView.resume();
     }
 }
