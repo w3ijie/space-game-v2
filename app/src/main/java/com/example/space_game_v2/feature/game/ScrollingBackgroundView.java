@@ -19,6 +19,7 @@ import com.example.space_game_v2.R;
 
 
 public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
+    private int economy = 0; // Starting economy value
 
     private Thread thread;
     private boolean isRunning = false;
@@ -40,9 +41,17 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
 
     public void approveNearestSpaceship() {
         if (!spaceships.isEmpty()) {
-            // Remove the spaceship closest to the space station
-            spaceships.remove(0);
+            Spaceship nearestSpaceship = spaceships.get(0); // Assuming this is the nearest one
+            if ("money".equals(nearestSpaceship.type)) {
+                economy += 100; // Increment economy for moneyship
+            }
+            spaceships.remove(0); // Remove the nearest spaceship
         }
+    }
+
+    // Getter for economy value to be used in GameActivity
+    public int getEconomy() {
+        return economy;
     }
 
     public void disapproveNearestSpaceship() {
