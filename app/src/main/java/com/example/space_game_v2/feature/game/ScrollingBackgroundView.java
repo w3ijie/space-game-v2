@@ -5,11 +5,18 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Rect;
+import android.graphics.drawable.AnimationDrawable;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import androidx.core.content.ContextCompat;
 import java.util.*;
+import android.os.SystemClock;
+import android.graphics.drawable.Drawable;
+
 import com.example.space_game_v2.R;
+
 
 public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
 
@@ -22,9 +29,35 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     private final int scrollSpeed = 3; // Adjust this value for different scroll speeds
 
     private Bitmap bombShipBitmap, moneyShipBitmap;
+    // Declare the explosions list and explosionAnimation here
+    List<Explosion> explosions;
+    AnimationDrawable explosionAnimation;
+
     private List<Spaceship> spaceships;
     private int spaceshipSpeed = 1; // Initial speed of the spaceship
     private long lastSpawnTime = System.currentTimeMillis(); // Last spawn time for a spaceship
+// Inside ScrollingBackgroundView class
+
+    public void approveNearestSpaceship() {
+        if (!spaceships.isEmpty()) {
+            // Remove the spaceship closest to the space station
+            spaceships.remove(0);
+        }
+    }
+
+    public void disapproveNearestSpaceship() {
+        if (!spaceships.isEmpty()) {
+            // Get the nearest spaceship
+            Spaceship spaceship = spaceships.get(0);
+
+            // Trigger explosion at the spaceship's location
+            triggerExplosion(spaceship.x + bombShipBitmap.getWidth() / 2f, spaceship.y + bombShipBitmap.getHeight() / 2f);
+
+            // Remove the spaceship
+            spaceships.remove(spaceship);
+        }
+    }
+
 
     // Constructor used when creating the view programmatically
     public ScrollingBackgroundView(Context context) {
@@ -67,7 +100,22 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
 
         // Initialize the spaceship list
         spaceships = new ArrayList<>();
+
+
+
+        // Initialize the explosions list
+        explosions = new ArrayList<>();
+
+        // Initialize the explosionAnimation
+        explosionAnimation = (AnimationDrawable) ContextCompat.getDrawable(context, R.drawable.explosion_animation);
+        if (explosionAnimation == null || ! (explosionAnimation instanceof AnimationDrawable)) {
+            throw new AssertionError("Explosion animation drawable could not be loaded or is not an AnimationDrawable.");
+        }
+
+        explosionAnimation.setOneShot(true); // Assuming you want the animation to play only once
+        explosionAnimation.setVisible(false, false); // Set the visibility to false initially
     }
+
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
@@ -92,6 +140,13 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
             } catch (InterruptedException e) {
                 // Handle the exception
             }
+        }
+    }
+    public void triggerExplosion(float x, float y) {
+        AnimationDrawable animDrawable = (AnimationDrawable) ContextCompat.getDrawable(getContext(), R.drawable.explosion_animation);
+        if (animDrawable != null) {
+            animDrawable.start();
+            explosions.add(new Explosion(animDrawable, x, y));
         }
     }
 
@@ -150,8 +205,19 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
                             iterator.remove();
                         }
                     }
+                    // Update and draw explosions
+                    Iterator<Explosion> explosionIterator = explosions.iterator();
+                    while (explosionIterator.hasNext()) {
+                        Explosion explosion = explosionIterator.next();
+                        explosion.update(); // Update explosion state
+                        explosion.draw(canvas); // Draw the explosion
 
-                    // Unlock and post the canvas content
+                        // Remove explosion if it's no longer active
+                        if (!explosion.isActive) explosionIterator.remove();
+                    }
+
+
+
                     holder.unlockCanvasAndPost(canvas);
                 }
             }
@@ -187,4 +253,48 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
             this.type = new Random().nextBoolean() ? "money" : "bomb"; // Randomize type
         }
     }
+
+
+    // Inner class to handle explosion logic
+    private class Explosion {
+        private final AnimationDrawable animationDrawable;
+        private final float x;
+        private final float y;
+        private boolean isActive;
+        private int currentFrame = 0;
+        private long lastFrameChangeTime = System.currentTimeMillis();
+
+        public Explosion(AnimationDrawable animationDrawable, float x, float y) {
+            this.animationDrawable = animationDrawable;
+            this.x = x - animationDrawable.getIntrinsicWidth() / 2f;
+            this.y = y - animationDrawable.getIntrinsicHeight() / 2f;
+            this.isActive = true;
+        }
+
+        public void update() {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastFrameChangeTime > animationDrawable.getDuration(currentFrame)) {
+                currentFrame++;
+                lastFrameChangeTime = currentTime;
+                if (currentFrame >= animationDrawable.getNumberOfFrames()) {
+                    isActive = false; // Animation done
+                }
+            }
+        }
+
+        public void draw(Canvas canvas) {
+            if (!isActive) return;
+
+            Drawable frame = animationDrawable.getFrame(currentFrame);
+            frame.setBounds((int) x, (int) y, (int) (x + frame.getIntrinsicWidth()), (int) (y + frame.getIntrinsicHeight()));
+            frame.draw(canvas);
+        }
+
+        public boolean isActive() {
+            return isActive;
+        }
+    }
+
+
 }
+

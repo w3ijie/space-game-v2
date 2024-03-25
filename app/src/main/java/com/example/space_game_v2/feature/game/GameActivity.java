@@ -56,14 +56,15 @@ public class GameActivity extends AppCompatActivity {
         scrollingBackgroundView.resume();
     }
 
+    // Inside GameActivity class
+
     private void approveSpaceship() {
-        // Implement the logic to handle spaceship approval
-        // This might involve interacting with the ScrollingBackgroundView to get the current spaceship, etc.
+        scrollingBackgroundView.approveNearestSpaceship();
     }
 
     private void disapproveSpaceship() {
-        // Implement the logic to handle spaceship disapproval
-        // This might involve interacting with the ScrollingBackgroundView to remove the current spaceship, etc.
+        scrollingBackgroundView.disapproveNearestSpaceship();
     }
+
 }
 
