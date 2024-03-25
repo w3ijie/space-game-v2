@@ -8,7 +8,7 @@ import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-
+import java.util.*;
 import com.example.space_game_v2.R;
 
 public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
@@ -20,6 +20,11 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     private float backgroundY = 0;
     private SurfaceHolder holder;
     private final int scrollSpeed = 3; // Adjust this value for different scroll speeds
+
+    private Bitmap bombShipBitmap, moneyShipBitmap;
+    private List<Spaceship> spaceships;
+    private int spaceshipSpeed = 1; // Initial speed of the spaceship
+    private long lastSpawnTime = System.currentTimeMillis(); // Last spawn time for a spaceship
 
     // Constructor used when creating the view programmatically
     public ScrollingBackgroundView(Context context) {
@@ -54,6 +59,14 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         int scaledHeight = originalSpaceStationBitmap.getHeight() / scaleFactor;
         scaledSpaceStationBitmap = Bitmap.createScaledBitmap(originalSpaceStationBitmap, scaledWidth, scaledHeight, false);
         originalSpaceStationBitmap.recycle(); // Recycle the original bitmap if it's no longer needed
+
+
+        // Load spaceship bitmaps
+        bombShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bombship);
+        moneyShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.moneyship);
+
+        // Initialize the spaceship list
+        spaceships = new ArrayList<>();
     }
 
     @Override
@@ -92,6 +105,9 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
             Canvas canvas = holder.lockCanvas();
             if (canvas != null) {
                 synchronized (holder) {
+                    // Clear the canvas
+                    canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
+
                     // Draw the scrolling background
                     canvas.drawBitmap(backgroundBitmap, 0, backgroundY, null);
                     canvas.drawBitmap(backgroundBitmap, 0, backgroundY - backgroundBitmap.getHeight(), null);
@@ -102,21 +118,46 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
                         backgroundY = 0;
                     }
 
-                    // Calculate the x position to center the space station
-                    float x = (canvas.getWidth() - scaledSpaceStationBitmap.getWidth()) / 2;
+                    // Draw the scaled space station bitmap at the bottom of the screen, centered
+                    float spaceStationX = (canvas.getWidth() - scaledSpaceStationBitmap.getWidth()) / 2;
+                    // Draw the space station half above the bottom edge of the screen
+                    float spaceStationY = canvas.getHeight() - (scaledSpaceStationBitmap.getHeight() / 2);
+                    canvas.drawBitmap(scaledSpaceStationBitmap, spaceStationX, spaceStationY, null);
 
-                    // Calculate the y position so that only half of the space station is visible
-                    // The y position will be the canvas height minus half of the space station's height
-                    float y = canvas.getHeight() - (scaledSpaceStationBitmap.getHeight() / 2);
+                    // Add new spaceship at random positions and reset spawn time
+                    if (System.currentTimeMillis() - lastSpawnTime >= 2000) {
+                        spaceships.add(new Spaceship(canvas.getWidth()));
+                        lastSpawnTime = System.currentTimeMillis();
+                        spaceshipSpeed += 1; // Increase the speed for the next spaceship
+                    }
 
-                    // Draw the scaled space station bitmap so that half is sticking out from the bottom
-                    canvas.drawBitmap(scaledSpaceStationBitmap, x, y, null);
+                    // Iterate over spaceships and draw them
+                    for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext();) {
+                        Spaceship spaceship = iterator.next();
+                        spaceship.y += spaceshipSpeed; // Move the spaceship downwards
 
+                        // Choose the bitmap based on the type of spaceship
+                        Bitmap shipBitmap = spaceship.type.equals("money") ? moneyShipBitmap : bombShipBitmap;
+                        float shipX = (canvas.getWidth() - shipBitmap.getWidth()) / 2; // Center the spaceship horizontally
+                        float shipY = spaceship.y; // Current y position of spaceship
+
+                        // Draw the spaceship
+                        canvas.drawBitmap(shipBitmap, shipX, shipY, null);
+
+                        // Remove spaceship when it reaches the base
+                        // Here, the ship disappears as it reaches the top edge of the space station bitmap
+                        if (shipY > spaceStationY - shipBitmap.getHeight()) {
+                            iterator.remove();
+                        }
+                    }
+
+                    // Unlock and post the canvas content
                     holder.unlockCanvasAndPost(canvas);
                 }
             }
         }
     }
+
 
     public void pause() {
         isRunning = false;
@@ -134,5 +175,16 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         isRunning = true;
         thread = new Thread(this);
         thread.start();
+    }
+
+    private class Spaceship {
+        public float x, y;
+        public String type; // "money" for money ship, "bomb" for bomb ship
+
+        public Spaceship(int screenWidth) {
+            this.x = (screenWidth - bombShipBitmap.getWidth()) / 2; // Center the spaceship
+            this.y = -bombShipBitmap.getHeight(); // Start above the screen
+            this.type = new Random().nextBoolean() ? "money" : "bomb"; // Randomize type
+        }
     }
 }
