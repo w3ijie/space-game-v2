@@ -1,6 +1,6 @@
 package com.example.space_game_v2.feature.game;
-import android.view.Gravity;
 
+import android.view.Gravity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -10,7 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.space_game_v2.R;
 
-public class GameActivity extends AppCompatActivity {
+public class GameActivity extends AppCompatActivity implements SpaceshipEventListener {
     private ImageView heart1, heart2, heart3;
     private TextView tvEconomy;
     private ScrollingBackgroundView scrollingBackgroundView;
@@ -29,6 +29,11 @@ public class GameActivity extends AppCompatActivity {
         tvEconomy = findViewById(R.id.tvEconomy);
         buttonApprove = findViewById(R.id.button_approve);
         buttonDisapprove = findViewById(R.id.button_disapprove);
+
+        // Ensure ScrollingBackgroundView is ready before setting the listener
+        if (scrollingBackgroundView != null) {
+            scrollingBackgroundView.setSpaceshipEventListener(this);
+        }
 
         buttonApprove.setOnClickListener(v -> approveSpaceship());
         buttonDisapprove.setOnClickListener(v -> disapproveSpaceship());
@@ -49,7 +54,6 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-
     private void decrementLives() {
         lives--;
         updateLivesDisplay();
@@ -65,24 +69,13 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void gameOver() {
-        // Stop the background scrolling and spaceship generation
         scrollingBackgroundView.stopGame();
-
-        // Create and show a Toast message
         Toast toast = Toast.makeText(this, "Game Over, you've failed the Singaporean Economy", Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER, 0, 0); // Position the Toast in the center of the screen
+        toast.setGravity(Gravity.CENTER, 0, 0);
         toast.show();
-
-        // Optional: Disable buttons to prevent further interaction
         buttonApprove.setEnabled(false);
         buttonDisapprove.setEnabled(false);
-
-        // Further optional: Navigate to a different screen or restart the game
-        // Intent intent = new Intent(GameActivity.this, MainActivity.class);
-        // startActivity(intent);
-        // finish();
     }
-
 
     private void updateEconomyDisplay() {
         tvEconomy.setText("$" + scrollingBackgroundView.getEconomy());
@@ -98,5 +91,10 @@ public class GameActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         scrollingBackgroundView.resume();
+    }
+
+    @Override
+    public void onSpaceshipReachedBase(Spaceship spaceship) {
+        decrementLives();
     }
 }
