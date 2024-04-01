@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import com.example.space_game_v2.BackgroundMusicService;
+
 import com.example.space_game_v2.R;
 import com.example.space_game_v2.feature.game.GameActivity;
 //import com.example.space_game_v2.feature.leaderboard.LeaderboardActivity;
@@ -35,10 +35,6 @@ public class MainActivity extends AppCompatActivity {
 //    }
 
     public void startGame(View view) {
-        Intent intent = new Intent(MainActivity.this, GameActivity.class);
-        startActivity(intent);
-        // Start music service here if not already playing
-        startService(new Intent(this, BackgroundMusicService.class));
+        startActivity(new Intent(MainActivity.this, GameActivity.class));
     }
-
 }
