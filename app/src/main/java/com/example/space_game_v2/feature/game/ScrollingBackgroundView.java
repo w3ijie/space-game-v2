@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Random;
 import com.example.space_game_v2.R;
 import android.media.MediaPlayer;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Paint;
 
 
 // Make sure Spaceship class is accessible to other classes
@@ -39,6 +42,8 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     private int economy = 0; // Starting economy value
 
     private MediaPlayer mediaPlayer;
+    private Bitmap scaledMoneyShipBitmap; // Add this class member for the scaled money ship bitmap
+
 
     private Bitmap gunBitmap; // Add this as a class member
     private Thread thread;
@@ -82,6 +87,60 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         return economy;
     }
 
+    // New Explosion class that handles sprite sheet animation
+    private class Explosion {
+        private Bitmap spriteSheet;
+        private int frameCount; // Set this based on your sprite sheet
+        private int frameWidth;
+        private int frameHeight;
+        private int currentFrame;
+        private long lastFrameChangeTime;
+        private long frameDuration; // Duration for each frame in milliseconds
+        private boolean isActive;
+        private float x;
+        private float y;
+
+        public Explosion(Context context, float x, float y) {
+            this.spriteSheet = BitmapFactory.decodeResource(context.getResources(), R.drawable.explosion_sprite);
+            this.frameCount = 12;
+            this.frameWidth = this.spriteSheet.getWidth() / frameCount;
+            this.frameHeight = this.spriteSheet.getHeight();
+            this.currentFrame = 0;
+            this.lastFrameChangeTime = System.currentTimeMillis();
+            this.isActive = true;
+            this.x = x - frameWidth / 2f; // Center the explosion
+            this.y = y - frameHeight / 2f; // Center the explosion
+            this.frameDuration = 10;
+        }
+
+        public void update() {
+            long time = System.currentTimeMillis();
+            if (time > lastFrameChangeTime + frameDuration) {
+                currentFrame++;
+                lastFrameChangeTime = time;
+                if (currentFrame >= frameCount) {
+                    isActive = false;
+                }
+            }
+        }
+
+        public void draw(Canvas canvas) {
+            if (!isActive) {
+                return;
+            }
+            int frameX = currentFrame * frameWidth;
+            Rect frameToDraw = new Rect(frameX, 0, frameX + frameWidth, frameHeight);
+            RectF whereToDraw = new RectF(x, y, x + frameWidth, y + frameHeight);
+            canvas.drawBitmap(spriteSheet, frameToDraw, whereToDraw, null);
+        }
+
+        public boolean isActive() {
+            return isActive;
+        }
+
+    }
+
+
     public boolean disapproveNearestSpaceship() {
         if (!spaceships.isEmpty()) {
             Spaceship nearestSpaceship = spaceships.get(0);
@@ -114,37 +173,50 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         super(context, attrs, defStyleAttr);
         init(context, attrs);
     }
-
     private void init(Context context, AttributeSet attrs) {
         holder = getHolder();
         holder.addCallback(this);
 
-        mediaPlayer = MediaPlayer.create(context, R.raw.background_music); // Replace 'game_music' with your music file name
+        // Initialize media player for background music
+        mediaPlayer = MediaPlayer.create(context, R.raw.background_music);
         mediaPlayer.setLooping(true); // Music will loop
-        mediaPlayer.setVolume(1.0f, 1.0f); // Set volume (adjust as necessary)
+        mediaPlayer.setVolume(1.0f, 1.0f); // Set volume
 
+        // Load and scale the gun bitmap
+        gunBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.weapon);
 
-// Initialize in your init method
-        gunBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.weapon); // Adjust the resource name accordingly
-
+        // Load and set the background bitmap
         backgroundBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.background_game);
 
+        // Load, scale, and set the space station bitmap
         Bitmap originalSpaceStationBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.space_station);
-        int scaleFactor = 2;
-        int scaledWidth = originalSpaceStationBitmap.getWidth() / scaleFactor;
-        int scaledHeight = originalSpaceStationBitmap.getHeight() / scaleFactor;
-        scaledSpaceStationBitmap = Bitmap.createScaledBitmap(originalSpaceStationBitmap, scaledWidth, scaledHeight, false);
-        originalSpaceStationBitmap.recycle();
+        int spaceStationScaleFactor = 2; // Adjust this factor to scale the space station size
+        scaledSpaceStationBitmap = Bitmap.createScaledBitmap(originalSpaceStationBitmap, originalSpaceStationBitmap.getWidth() / spaceStationScaleFactor, originalSpaceStationBitmap.getHeight() / spaceStationScaleFactor, false);
+        originalSpaceStationBitmap.recycle(); // Recycle the original bitmap as it's no longer needed
 
-        bombShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bombship);
-        moneyShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.moneyship);
+        // Load, scale, and set the money ship bitmap
+        Bitmap originalMoneyShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.moneyship);
+        int moneyShipScaleFactor = 2; // Adjust this factor to scale the money ship size
+        scaledMoneyShipBitmap = Bitmap.createScaledBitmap(originalMoneyShipBitmap, originalMoneyShipBitmap.getWidth() / moneyShipScaleFactor, originalMoneyShipBitmap.getHeight() / moneyShipScaleFactor, false);
+        originalMoneyShipBitmap.recycle(); // Recycle the original bitmap as it's no longer needed
 
+        // Load, scale, and set the bomb ship bitmap
+        Bitmap originalBombShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bombship);
+        int bombShipScaleFactor = 2; // Adjust this factor to scale the bomb ship size
+        bombShipBitmap = Bitmap.createScaledBitmap(originalBombShipBitmap, originalBombShipBitmap.getWidth() / bombShipScaleFactor, originalBombShipBitmap.getHeight() / bombShipScaleFactor, false);
+        originalBombShipBitmap.recycle(); // Recycle the original bitmap as it's no longer needed
+
+        // Initialize lists for spaceships and explosions
         spaceships = new ArrayList<>();
         explosions = new ArrayList<>();
+
+        // Load and set the explosion animation
         explosionAnimation = (AnimationDrawable) ContextCompat.getDrawable(context, R.drawable.explosion_animation);
-        explosionAnimation.setOneShot(true);
-        explosionAnimation.setVisible(false, false);
+        explosionAnimation.setOneShot(true); // The explosion animation should only play once
     }
+
+
+
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
@@ -180,13 +252,12 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         }
     }
 
+    // Trigger explosion method will now create a new Explosion object using the sprite sheet
     public void triggerExplosion(float x, float y) {
-        AnimationDrawable animDrawable = (AnimationDrawable) ContextCompat.getDrawable(getContext(), R.drawable.explosion_animation);
-        if (animDrawable != null) {
-            animDrawable.start();
-            explosions.add(new Explosion(animDrawable, x, y));
-        }
+        explosions.add(new Explosion(getContext(), x, y));
     }
+
+
     @Override
     public void run() {
         while (isRunning) {
@@ -243,36 +314,49 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
 
         return spaceStationY - gunBitmap.getHeight() / 2f; // Return the Y position where spaceship should disappear
     }
-
     private void updateAndDrawSpaceships(Canvas canvas, float spaceStationY) {
-        // Spawn new spaceships at intervals
+        // Check and spawn new spaceships
         if (System.currentTimeMillis() - lastSpawnTime >= 2000) {
             spaceships.add(new Spaceship(canvas.getWidth(), bombShipBitmap.getWidth()));
             lastSpawnTime = System.currentTimeMillis();
-            spaceshipSpeed++; // Increment the spaceship speed for a gradual difficulty increase
+            spaceshipSpeed++; // Increase speed for difficulty
         }
 
-        // Iterate over and draw spaceships
+        // Iterate over spaceships to update and draw
         for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext();) {
             Spaceship spaceship = iterator.next();
             spaceship.y += spaceshipSpeed;
 
-            Bitmap shipBitmap = spaceship.type.equals("money") ? moneyShipBitmap : bombShipBitmap;
-            float shipX = spaceship.x;
+            Bitmap shipBitmap = null;
+            float shipX = 0;
+
+            // Use the scaled bitmap for money ships and center it horizontally
+            if ("money".equals(spaceship.type)) {
+                shipBitmap = scaledMoneyShipBitmap;
+                shipX = (canvas.getWidth() - shipBitmap.getWidth()) / 2; // Center the money ship
+            } else if ("bomb".equals(spaceship.type)) {
+                shipBitmap = bombShipBitmap;
+                shipX = spaceship.x; // Use the x position of the bomb ship
+            }
+
             float shipY = spaceship.y;
 
-            canvas.drawBitmap(shipBitmap, shipX, shipY, null);
+            // Draw the spaceship bitmap
+            if (shipBitmap != null) {
+                canvas.drawBitmap(shipBitmap, shipX, shipY, null);
+            }
 
-            // Check if the spaceship reaches the base (accounting for turret)
+            // Check if the spaceship reaches the base
             if (shipY + shipBitmap.getHeight() >= spaceStationY) {
-                iterator.remove(); // Remove the spaceship
+                iterator.remove(); // Remove spaceship from the list
                 if (spaceshipEventListener != null) {
                     spaceshipEventListener.onSpaceshipReachedBase(spaceship);
                 }
-                // Optionally trigger explosion here
             }
         }
     }
+
+
 
     private void updateAndDrawExplosions(Canvas canvas) {
         Iterator<Explosion> explosionIterator = explosions.iterator();
@@ -306,38 +390,5 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         thread.start();
     }
 
-    private class Explosion {
-        private final AnimationDrawable animationDrawable;
-        private final float x;
-        private final float y;
-        private boolean isActive;
-        private int currentFrame = 0;
-        private long lastFrameChangeTime = System.currentTimeMillis();
 
-        public Explosion(AnimationDrawable animationDrawable, float x, float y) {
-            this.animationDrawable = animationDrawable;
-            this.x = x - animationDrawable.getIntrinsicWidth() / 2f;
-            this.y = y - animationDrawable.getIntrinsicHeight() / 2f;
-            this.isActive = true;
-        }
-
-        public void update() {
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - lastFrameChangeTime > animationDrawable.getDuration(currentFrame)) {
-                currentFrame++;
-                lastFrameChangeTime = currentTime;
-                if (currentFrame >= animationDrawable.getNumberOfFrames()) {
-                    isActive = false;
-                }
-            }
-        }
-
-        public void draw(Canvas canvas) {
-            if (!isActive) return;
-
-            Drawable frame = animationDrawable.getFrame(currentFrame);
-            frame.setBounds((int) x, (int) y, (int) (x + frame.getIntrinsicWidth()), (int) (y + frame.getIntrinsicHeight()));
-            frame.draw(canvas);
-        }
-    }
 }

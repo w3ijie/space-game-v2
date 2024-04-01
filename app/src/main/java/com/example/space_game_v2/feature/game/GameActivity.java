@@ -56,6 +56,16 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
             decrementLives(); // Decrement lives if a money ship is incorrectly disapproved
         }
     }
+    @Override
+    public void onSpaceshipReachedBase(Spaceship spaceship) {
+        // This method is called from the game thread, UI updates must be run on the main thread.
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                decrementLives();
+            }
+        });
+    }
 
     private void decrementLives() {
         lives--;
@@ -71,17 +81,33 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         heart3.setVisibility(lives >= 3 ? View.VISIBLE : View.INVISIBLE);
     }
 
-    private void gameOver() {
-        scrollingBackgroundView.stopGame();
-        Toast toast = Toast.makeText(this, "Game Over, you've failed the Singaporean Economy", Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER, 0, 0);
-        toast.show();
-        buttonApprove.setEnabled(false);
-        buttonDisapprove.setEnabled(false);
+    private void endGame() {
+        // Ensure this is called on the main thread as it will update the UI
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                scrollingBackgroundView.stopGame();
+                Toast toast = Toast.makeText(GameActivity.this, "Game Over, you've failed the Singaporean Economy", Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                toast.show();
+                buttonApprove.setEnabled(false);
+                buttonDisapprove.setEnabled(false);
 
-        // Stop the music service
-        stopService(new Intent(this, BackgroundMusicService.class));
+                // Stop the music service
+                stopService(new Intent(GameActivity.this, BackgroundMusicService.class));
+
+                // Optional: If you want to finish the activity and return to the previous one.
+                // finish();
+            }
+        });
     }
+
+
+    // Update the gameOver method to call endGame
+    private void gameOver() {
+        endGame();
+    }
+
 
 
     private void updateEconomyDisplay() {
@@ -105,9 +131,4 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         scrollingBackgroundView.resume();
     }
 
-
-    @Override
-    public void onSpaceshipReachedBase(Spaceship spaceship) {
-        decrementLives();
-    }
 }
