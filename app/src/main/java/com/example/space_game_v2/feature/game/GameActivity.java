@@ -9,6 +9,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.space_game_v2.R;
+import com.example.space_game_v2.BackgroundMusicService;
+import android.content.Intent;
+
 
 public class GameActivity extends AppCompatActivity implements SpaceshipEventListener {
     private ImageView heart1, heart2, heart3;
@@ -75,23 +78,33 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         toast.show();
         buttonApprove.setEnabled(false);
         buttonDisapprove.setEnabled(false);
+
+        // Stop the music service
+        stopService(new Intent(this, BackgroundMusicService.class));
     }
+
 
     private void updateEconomyDisplay() {
         tvEconomy.setText("$" + scrollingBackgroundView.getEconomy());
     }
 
+
     @Override
     protected void onPause() {
         super.onPause();
+        // Stop music when activity is not visible
+        stopService(new Intent(this, BackgroundMusicService.class));
         scrollingBackgroundView.pause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        // Resume music when activity is back
+        startService(new Intent(this, BackgroundMusicService.class));
         scrollingBackgroundView.resume();
     }
+
 
     @Override
     public void onSpaceshipReachedBase(Spaceship spaceship) {

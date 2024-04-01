@@ -15,6 +15,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import com.example.space_game_v2.R;
+import android.media.MediaPlayer;
+
 
 // Make sure Spaceship class is accessible to other classes
 class Spaceship {
@@ -35,6 +37,9 @@ interface SpaceshipEventListener {
 
 public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
     private int economy = 0; // Starting economy value
+
+    private MediaPlayer mediaPlayer;
+
     private Bitmap gunBitmap; // Add this as a class member
     private Thread thread;
     private boolean isRunning = false;
@@ -113,6 +118,10 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     private void init(Context context, AttributeSet attrs) {
         holder = getHolder();
         holder.addCallback(this);
+
+        mediaPlayer = MediaPlayer.create(context, R.raw.background_music); // Replace 'game_music' with your music file name
+        mediaPlayer.setLooping(true); // Music will loop
+        mediaPlayer.setVolume(1.0f, 1.0f); // Set volume (adjust as necessary)
 
 
 // Initialize in your init method
