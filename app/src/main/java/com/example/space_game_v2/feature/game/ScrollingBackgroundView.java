@@ -228,7 +228,7 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         canvas.drawBitmap(scaledSpaceStationBitmap, spaceStationX, spaceStationY, null);
 
         // Draw the turret (gun) on top of the base (assume the turret image is centered on the base image)
-        float gunX = spaceStationX + (scaledSpaceStationBitmap.getWidth() - 717 - (gunBitmap.getWidth()) / 2);
+        float gunX = spaceStationX + (scaledSpaceStationBitmap.getWidth() - 685 - (gunBitmap.getWidth()) / 2);
         float gunY = spaceStationY - gunBitmap.getHeight() / 2f; // Adjust this to position the turret correctly
         canvas.drawBitmap(gunBitmap, gunX, gunY, null);
 
