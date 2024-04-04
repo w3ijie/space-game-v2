@@ -15,6 +15,9 @@ import com.example.space_game_v2.BackgroundMusicService;
 import com.example.space_game_v2.feature.main.MainActivity;
 
 import android.content.Intent;
+import android.content.DialogInterface;
+import androidx.appcompat.app.AlertDialog;
+
 
 
 public class GameActivity extends AppCompatActivity implements SpaceshipEventListener {
@@ -89,37 +92,30 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         // Ensure this is called on the main thread as it will update the UI
         runOnUiThread(() -> {
             scrollingBackgroundView.stopGame();
-
-            // Inflate the custom toast layout with 'null' as the parent view since it's going into a toast
-            LayoutInflater inflater = getLayoutInflater();
-            View layout = inflater.inflate(R.layout.custom_toast_game_over, null);
-
-            // Find and set up the "Return to Main Menu" button in the custom toast layout
-            Button returnToMenuButton = layout.findViewById(R.id.toast_button);
-            returnToMenuButton.setOnClickListener(view -> returnToMainMenu());
-
-            // Create and show the toast with the custom layout
-            Toast toast = new Toast(getApplicationContext());
-            toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
-            toast.setDuration(Toast.LENGTH_LONG);
-            toast.setView(layout);
-            toast.show();
-
             buttonApprove.setEnabled(false);
             buttonDisapprove.setEnabled(false);
 
             // Stop the music service
             stopService(new Intent(GameActivity.this, BackgroundMusicService.class));
+
+            // Show a dialog instead of a toast
+            AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity.this);
+            builder.setTitle("Game Over");
+            builder.setMessage("You've failed the Singaporean Economy.");
+            builder.setPositiveButton("Return to Main Menu", (dialog, which) -> returnToMainMenu());
+            builder.setCancelable(false); // Prevents the dialog from being dismissed on back press
+            builder.show();
         });
     }
 
 
 
 
-    // Update the gameOver method to call endGame
+
+        // Update the gameOver method to call endGame
     private void gameOver() {
         endGame();
-        returnToMainMenu();
+
     }
 
 
