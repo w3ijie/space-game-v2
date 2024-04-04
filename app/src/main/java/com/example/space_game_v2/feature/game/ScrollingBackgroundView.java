@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import androidx.core.content.ContextCompat;
@@ -14,6 +15,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import com.example.space_game_v2.R;
 import android.media.MediaPlayer;
 import android.graphics.Rect;
@@ -24,14 +29,23 @@ import android.graphics.Paint;
 // Make sure Spaceship class is accessible to other classes
 class Spaceship {
     public float x, y;
-    public String type; // "money" for money ship, "bomb" for bomb ship
+    public String type; // Add "alien" as a possible type
 
+    // Existing constructor
     public Spaceship(int screenWidth, int shipWidth) {
-        this.x = (screenWidth - shipWidth) / 2; // Center the spaceship
-        this.y = -shipWidth; // Start above the screen
-        this.type = new Random().nextBoolean() ? "money" : "bomb"; // Randomize type
+        this.x = (screenWidth - shipWidth) / 2;
+        this.y = -shipWidth;
+        this.type = new Random().nextBoolean() ? "money" : "bomb";
+    }
+
+    // New constructor for alien spaceship
+    public Spaceship(float x, float y, String type) {
+        this.x = x;
+        this.y = y;
+        this.type = type;
     }
 }
+
 
 // Listener interface for spaceship events
 interface SpaceshipEventListener {
@@ -39,6 +53,10 @@ interface SpaceshipEventListener {
 }
 
 public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
+    private Bitmap alienShipBitmap;
+    private List<Spaceship> alienSpaceships = new ArrayList<>();
+    private ScheduledExecutorService scheduler;
+
     private int economy = 0; // Starting economy value
 
     private MediaPlayer mediaPlayer;
@@ -90,7 +108,7 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     // New Explosion class that handles sprite sheet animation
     private class Explosion {
         private Bitmap spriteSheet;
-        private int frameCount; // Set this based on your sprite sheet
+        private int frameCount; // Set this based on sprite sheet
         private int frameWidth;
         private int frameHeight;
         private int currentFrame;
@@ -206,6 +224,9 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         bombShipBitmap = Bitmap.createScaledBitmap(originalBombShipBitmap, originalBombShipBitmap.getWidth() / bombShipScaleFactor, originalBombShipBitmap.getHeight() / bombShipScaleFactor, false);
         originalBombShipBitmap.recycle(); // Recycle the original bitmap as it's no longer needed
 
+
+
+
         // Initialize lists for spaceships and explosions
         spaceships = new ArrayList<>();
         explosions = new ArrayList<>();
@@ -213,7 +234,29 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         // Load and set the explosion animation
         explosionAnimation = (AnimationDrawable) ContextCompat.getDrawable(context, R.drawable.explosion_animation);
         explosionAnimation.setOneShot(true); // The explosion animation should only play once
+
+
+
+
+        //load alien bitmap
+        alienShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.alien);
+
+        // Initialize the scheduler and schedule the alien spaceship spawning task
+        scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                // Make sure to post the task on the UI thread
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        spawnAlienSpaceship();
+                    }
+                });
+            }
+        }, 10, 10, TimeUnit.SECONDS); // Schedules the task to run every 10 seconds
     }
+
 
 
 
@@ -230,17 +273,24 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
 
     public void stopGame() {
         isRunning = false;
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdownNow();
+        }
         try {
             if (thread != null) {
                 thread.join();
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            // Handle the exception
         }
     }
 
+
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdownNow();
+        }
         boolean retry = true;
         isRunning = false;
         while (retry) {
@@ -256,6 +306,7 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     public void triggerExplosion(float x, float y) {
         explosions.add(new Explosion(getContext(), x, y));
     }
+
 
 
     @Override
@@ -282,6 +333,8 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
 
                     // Update and draw explosions
                     updateAndDrawExplosions(canvas);
+
+                    drawAlienSpaceships(canvas);
 
                     // Release the canvas for the next frame
                     holder.unlockCanvasAndPost(canvas);
@@ -355,6 +408,20 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
             }
         }
     }
+    private void spawnAlienSpaceship() {
+        Random random = new Random();
+        int x = random.nextInt(getWidth() - alienShipBitmap.getWidth());
+        int y = random.nextInt(getHeight() - alienShipBitmap.getHeight());
+        // Use the new constructor
+        Spaceship alienSpaceship = new Spaceship(x, y, "alien");
+        alienSpaceships.add(alienSpaceship);
+    }
+    private void drawAlienSpaceships(Canvas canvas) {
+        for (Spaceship alienSpaceship : alienSpaceships) {
+            canvas.drawBitmap(alienShipBitmap, alienSpaceship.x, alienSpaceship.y, null);
+        }
+    }
+
 
 
 
@@ -390,5 +457,45 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         thread.start();
     }
 
+    // Override the onTouchEvent method here
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        // Check if the event is a touch down action
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            // Get the x and y coordinates of the touch event
+            float touchX = event.getX();
+            float touchY = event.getY();
+
+            // Create an iterator to safely remove items from the list while iterating
+            Iterator<Spaceship> iterator = alienSpaceships.iterator();
+
+            while (iterator.hasNext()) {
+                Spaceship spaceship = iterator.next();
+
+                // Calculate the bounding box of the current spaceship
+                float left = spaceship.x;
+                float top = spaceship.y;
+                float right = left + alienShipBitmap.getWidth();
+                float bottom = top + alienShipBitmap.getHeight();
+
+                // Check if the touch coordinates are within the bounding box of the spaceship
+                if (touchX >= left && touchX <= right && touchY >= top && touchY <= bottom) {
+                    // Touch is within the spaceship bounds, so remove the spaceship
+                    iterator.remove();
+
+                    // You can add an explosion or sound effect here if desired
+
+                    // Only remove one spaceship per touch event, so break the loop
+                    break;
+                }
+            }
+
+            // Indicate that the touch event was handled
+            return true;
+        }
+
+        // Pass the event up to the parent class if it's not a touch down action
+        return super.onTouchEvent(event);
+    }
 
 }

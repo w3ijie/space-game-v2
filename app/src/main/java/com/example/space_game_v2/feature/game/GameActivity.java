@@ -2,7 +2,9 @@ package com.example.space_game_v2.feature.game;
 
 import android.view.Gravity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -10,6 +12,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.space_game_v2.R;
 import com.example.space_game_v2.BackgroundMusicService;
+import com.example.space_game_v2.feature.main.MainActivity;
+
 import android.content.Intent;
 
 
@@ -83,29 +87,39 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
     private void endGame() {
         // Ensure this is called on the main thread as it will update the UI
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                scrollingBackgroundView.stopGame();
-                Toast toast = Toast.makeText(GameActivity.this, "Game Over, you've failed the Singaporean Economy", Toast.LENGTH_LONG);
-                toast.setGravity(Gravity.CENTER, 0, 0);
-                toast.show();
-                buttonApprove.setEnabled(false);
-                buttonDisapprove.setEnabled(false);
+        runOnUiThread(() -> {
+            scrollingBackgroundView.stopGame();
 
-                // Stop the music service
-                stopService(new Intent(GameActivity.this, BackgroundMusicService.class));
+            // Inflate the custom toast layout with 'null' as the parent view since it's going into a toast
+            LayoutInflater inflater = getLayoutInflater();
+            View layout = inflater.inflate(R.layout.custom_toast_game_over, null);
 
-                // Optional: If you want to finish the activity and return to the previous one.
-                // finish();
-            }
+            // Find and set up the "Return to Main Menu" button in the custom toast layout
+            Button returnToMenuButton = layout.findViewById(R.id.toast_button);
+            returnToMenuButton.setOnClickListener(view -> returnToMainMenu());
+
+            // Create and show the toast with the custom layout
+            Toast toast = new Toast(getApplicationContext());
+            toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+            toast.setDuration(Toast.LENGTH_LONG);
+            toast.setView(layout);
+            toast.show();
+
+            buttonApprove.setEnabled(false);
+            buttonDisapprove.setEnabled(false);
+
+            // Stop the music service
+            stopService(new Intent(GameActivity.this, BackgroundMusicService.class));
         });
     }
+
+
 
 
     // Update the gameOver method to call endGame
     private void gameOver() {
         endGame();
+        returnToMainMenu();
     }
 
 
@@ -114,6 +128,11 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         tvEconomy.setText("$" + scrollingBackgroundView.getEconomy());
     }
 
+    private void returnToMainMenu() {
+        Intent intent = new Intent(this, MainActivity.class); // Replace MainActivity.class with your main menu activity class
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+    }
 
     @Override
     protected void onPause() {
