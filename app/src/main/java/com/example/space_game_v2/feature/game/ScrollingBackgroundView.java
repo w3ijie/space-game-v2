@@ -191,6 +191,7 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         super(context, attrs, defStyleAttr);
         init(context, attrs);
     }
+
     private void init(Context context, AttributeSet attrs) {
         holder = getHolder();
         holder.addCallback(this);
@@ -225,8 +226,6 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         originalBombShipBitmap.recycle(); // Recycle the original bitmap as it's no longer needed
 
 
-
-
         // Initialize lists for spaceships and explosions
         spaceships = new ArrayList<>();
         explosions = new ArrayList<>();
@@ -234,8 +233,6 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         // Load and set the explosion animation
         explosionAnimation = (AnimationDrawable) ContextCompat.getDrawable(context, R.drawable.explosion_animation);
         explosionAnimation.setOneShot(true); // The explosion animation should only play once
-
-
 
 
         //load alien bitmap
@@ -258,9 +255,6 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     }
 
 
-
-
-
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         isRunning = true;
@@ -269,7 +263,8 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {}
+    public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
+    }
 
     public void stopGame() {
         isRunning = false;
@@ -306,7 +301,6 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
     public void triggerExplosion(float x, float y) {
         explosions.add(new Explosion(getContext(), x, y));
     }
-
 
 
     @Override
@@ -367,6 +361,7 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
 
         return spaceStationY - gunBitmap.getHeight() / 2f; // Return the Y position where spaceship should disappear
     }
+
     private void updateAndDrawSpaceships(Canvas canvas, float spaceStationY) {
         // Check and spawn new spaceships
         if (System.currentTimeMillis() - lastSpawnTime >= 2000) {
@@ -376,7 +371,7 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         }
 
         // Iterate over spaceships to update and draw
-        for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext();) {
+        for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext(); ) {
             Spaceship spaceship = iterator.next();
             spaceship.y += spaceshipSpeed;
 
@@ -408,21 +403,25 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
             }
         }
     }
+
     private void spawnAlienSpaceship() {
         Random random = new Random();
         int x = random.nextInt(getWidth() - alienShipBitmap.getWidth());
         int y = random.nextInt(getHeight() - alienShipBitmap.getHeight());
-        // Use the new constructor
         Spaceship alienSpaceship = new Spaceship(x, y, "alien");
-        alienSpaceships.add(alienSpaceship);
-    }
-    private void drawAlienSpaceships(Canvas canvas) {
-        for (Spaceship alienSpaceship : alienSpaceships) {
-            canvas.drawBitmap(alienShipBitmap, alienSpaceship.x, alienSpaceship.y, null);
+
+        synchronized (alienSpaceships) {
+            alienSpaceships.add(alienSpaceship);
         }
     }
 
-
+    private void drawAlienSpaceships(Canvas canvas) {
+        synchronized (alienSpaceships) {
+            for (Spaceship alienSpaceship : alienSpaceships) {
+                canvas.drawBitmap(alienShipBitmap, alienSpaceship.x, alienSpaceship.y, null);
+            }
+        }
+    }
 
 
     private void updateAndDrawExplosions(Canvas canvas) {
@@ -437,7 +436,6 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
             }
         }
     }
-
 
 
     public void pause() {
@@ -466,27 +464,30 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
             float touchX = event.getX();
             float touchY = event.getY();
 
-            // Create an iterator to safely remove items from the list while iterating
-            Iterator<Spaceship> iterator = alienSpaceships.iterator();
+            // Synchronize access to alienSpaceships to ensure thread safety
+            synchronized (alienSpaceships) {
+                // Create an iterator to safely remove items from the list while iterating
+                Iterator<Spaceship> iterator = alienSpaceships.iterator();
 
-            while (iterator.hasNext()) {
-                Spaceship spaceship = iterator.next();
+                while (iterator.hasNext()) {
+                    Spaceship spaceship = iterator.next();
 
-                // Calculate the bounding box of the current spaceship
-                float left = spaceship.x;
-                float top = spaceship.y;
-                float right = left + alienShipBitmap.getWidth();
-                float bottom = top + alienShipBitmap.getHeight();
+                    // Calculate the bounding box of the current spaceship
+                    float left = spaceship.x;
+                    float top = spaceship.y;
+                    float right = left + alienShipBitmap.getWidth();
+                    float bottom = top + alienShipBitmap.getHeight();
 
-                // Check if the touch coordinates are within the bounding box of the spaceship
-                if (touchX >= left && touchX <= right && touchY >= top && touchY <= bottom) {
-                    // Touch is within the spaceship bounds, so remove the spaceship
-                    iterator.remove();
+                    // Check if the touch coordinates are within the bounding box of the spaceship
+                    if (touchX >= left && touchX <= right && touchY >= top && touchY <= bottom) {
+                        // Touch is within the spaceship bounds, so remove the spaceship
+                        iterator.remove();
 
-                    // You can add an explosion or sound effect here if desired
+                        // You can add an explosion or sound effect here if desired
 
-                    // Only remove one spaceship per touch event, so break the loop
-                    break;
+                        // Only remove one spaceship per touch event, so break the loop
+                        break;
+                    }
                 }
             }
 
@@ -497,5 +498,4 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         // Pass the event up to the parent class if it's not a touch down action
         return super.onTouchEvent(event);
     }
-
 }

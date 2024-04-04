@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -30,6 +31,15 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Hide the status bar.
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        // Hide the action bar if present (for activities with ActionBar).
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+
+        setContentView(R.layout.activity_game);
         setContentView(R.layout.activity_game);
 
         heart1 = findViewById(R.id.heart1);
