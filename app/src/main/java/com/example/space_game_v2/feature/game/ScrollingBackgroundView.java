@@ -162,7 +162,6 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         explosionAnimation = (AnimationDrawable) ContextCompat.getDrawable(context, R.drawable.explosion_animation);
         explosionAnimation.setOneShot(true); // The explosion animation should only play once
 
-
         //load alien bitmap
         alienShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.alien);
 
@@ -341,17 +340,12 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         synchronized (alienSpaceships) {
             alienSpaceships.add(alienSpaceship);
 
-            // Vibrate the phone when an alien spaceship appears
-            Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+            // vibrate the phone when an alien spaceship appears
+            Vibrator vibrator = getContext().getSystemService(Vibrator.class);
             if (vibrator != null) {
-                // Vibrate for 500 milliseconds
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
-                    Log.d("VibrationEvent", "Alien spaceship appeared. Starting vibration."); // Log statement
-                } else {
-                    //deprecated in API 26
-                    vibrator.vibrate(500);
-                }
+                // for 500 milliseconds
+                vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                Log.d("VibrationEvent", "Alien spaceship appeared. Starting vibration.");
             }
         }
     }
@@ -377,7 +371,6 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
             }
         }
     }
-
 
     public void pause() {
         isRunning = false;
