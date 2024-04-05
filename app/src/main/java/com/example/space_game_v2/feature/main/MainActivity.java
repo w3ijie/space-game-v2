@@ -12,8 +12,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.space_game_v2.BackgroundMusicService;
 import com.example.space_game_v2.R;
 import com.example.space_game_v2.feature.game.GameActivity;
-//import com.example.space_game_v2.feature.leaderboard.LeaderboardActivity;
-
+import com.example.space_game_v2.feature.leaderboard.LeaderboardActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,10 +28,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-//    public void accessScoreBoard(View v) {
-//        // Code to access scoreboard here
-//        startActivity(new Intent(MainActivity.this, LeaderboardActivity.class));
-//    }
+    public void accessScoreBoard(View v) {
+        // Code to access scoreboard here
+        startActivity(new Intent(MainActivity.this, LeaderboardActivity.class));
+    }
 
     public void startGame(View view) {
         Intent intent = new Intent(MainActivity.this, GameActivity.class);

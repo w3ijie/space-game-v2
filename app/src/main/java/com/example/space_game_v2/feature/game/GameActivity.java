@@ -1,22 +1,18 @@
 package com.example.space_game_v2.feature.game;
 
-import android.view.Gravity;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.space_game_v2.R;
 import com.example.space_game_v2.BackgroundMusicService;
 import com.example.space_game_v2.feature.main.MainActivity;
 
 import android.content.Intent;
-import android.content.DialogInterface;
 import androidx.appcompat.app.AlertDialog;
 
 
@@ -33,7 +29,11 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         super.onCreate(savedInstanceState);
 
         // Hide the status bar.
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        WindowInsetsController controller = getWindow().getInsetsController();
+        if (controller != null) {
+            controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+            controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        }
         // Hide the action bar if present (for activities with ActionBar).
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
