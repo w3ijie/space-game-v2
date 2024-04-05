@@ -40,7 +40,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         }
 
         setContentView(R.layout.activity_game);
-        setContentView(R.layout.activity_game);
+
 
         heart1 = findViewById(R.id.heart1);
         heart2 = findViewById(R.id.heart2);
