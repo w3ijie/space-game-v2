@@ -6,6 +6,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -24,6 +27,8 @@ import android.media.MediaPlayer;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Paint;
+import android.util.Log;
+
 
 
 // Make sure Spaceship class is accessible to other classes
@@ -412,8 +417,23 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
 
         synchronized (alienSpaceships) {
             alienSpaceships.add(alienSpaceship);
+
+            // Vibrate the phone when an alien spaceship appears
+            Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+            if (vibrator != null) {
+                // Vibrate for 500 milliseconds
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                    Log.d("VibrationEvent", "Alien spaceship appeared. Starting vibration."); // Log statement
+                } else {
+                    //deprecated in API 26
+                    vibrator.vibrate(500);
+                }
+            }
         }
     }
+
+
 
     private void drawAlienSpaceships(Canvas canvas) {
         synchronized (alienSpaceships) {
@@ -483,7 +503,7 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
                         // Touch is within the spaceship bounds, so remove the spaceship
                         iterator.remove();
 
-                        // You can add an explosion or sound effect here if desired
+                        // can add an explosion or sound effect here if desired
 
                         // Only remove one spaceship per touch event, so break the loop
                         break;
