@@ -5,13 +5,20 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background_menu"
     tools:context=".feature.main.MainActivity">
 
     <TextView
         android:id="@+id/mainLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
+        android:text="SpacePort!"
+        android:textSize="24sp"
+        android:textColor="#FFFFFF"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="5"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"/>
 
@@ -21,9 +28,11 @@
         android:layout_height="wrap_content"
         android:onClick="startGame"
         android:text="Start"
-        android:layout_below="@id/mainLabel"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp" />
+        android:textColor="#FFFFFF"
+        android:background="@drawable/oval_button"
+    android:layout_below="@id/mainLabel"
+    android:layout_centerHorizontal="true"
+    android:layout_marginTop="50dp" />
 
     <Button
         android:id="@+id/scoreBoardButton"
@@ -31,8 +40,10 @@
         android:layout_height="wrap_content"
         android:onClick="accessScoreBoard"
         android:text="Scoreboard"
-        android:layout_below="@id/startGameButton"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp" />
+        android:textColor="#FFFFFF"
+        android:background="@drawable/oval_button"
+    android:layout_below="@id/startGameButton"
+    android:layout_centerHorizontal="true"
+    android:layout_marginTop="20dp" />
 
 </RelativeLayout>
