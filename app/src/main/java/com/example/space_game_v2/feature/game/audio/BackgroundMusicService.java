@@ -1,9 +1,11 @@
-package com.example.space_game_v2;
+package com.example.space_game_v2.feature.game.audio;
 import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.IBinder;
 import androidx.annotation.Nullable;
+
+import com.example.space_game_v2.R;
 
 public class BackgroundMusicService extends Service {
 

@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.space_game_v2.R;
-import com.example.space_game_v2.BackgroundMusicService;
+import com.example.space_game_v2.feature.game.audio.BackgroundMusicService;
 import com.example.space_game_v2.feature.game.elements.SpaceshipEventListener;
 import com.example.space_game_v2.feature.main.MainActivity;
 import com.example.space_game_v2.feature.game.elements.Spaceship;

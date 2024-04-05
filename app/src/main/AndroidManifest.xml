@@ -17,7 +17,7 @@
         android:theme="@style/Theme.Spacegamev2">
 
         <service
-            android:name=".BackgroundMusicService"
+            android:name=".feature.game.audio.BackgroundMusicService"
             android:enabled="true"
             android:exported="false"/> <!-- Assuming service is internal -->
 

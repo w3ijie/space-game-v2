@@ -3,9 +3,9 @@ package com.example.space_game_v2.feature.game.logic;
 import android.util.Log;
 
 public class ShipInspector extends Thread {
-    private Game game;
+    private GameController game;
 
-    public ShipInspector(Game game) {
+    public ShipInspector(GameController game) {
         this.game = game;
     }
 

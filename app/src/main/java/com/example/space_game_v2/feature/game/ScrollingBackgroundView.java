@@ -31,6 +31,7 @@ import android.util.Log;
 import com.example.space_game_v2.feature.game.elements.Explosion;
 import com.example.space_game_v2.feature.game.elements.Spaceship;
 import com.example.space_game_v2.feature.game.elements.SpaceshipEventListener;
+import com.example.space_game_v2.feature.game.utils.GameEffects;
 
 
 public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
@@ -40,7 +41,7 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
 
     private int economy = 0; // Starting economy value
 
-    private MediaPlayer mediaPlayer;
+//    private MediaPlayer mediaPlayer;
     private Bitmap scaledMoneyShipBitmap; // Add this class member for the scaled money ship bitmap
 
 
@@ -125,9 +126,9 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         holder.addCallback(this);
 
         // Initialize media player for background music
-        mediaPlayer = MediaPlayer.create(context, R.raw.background_music);
-        mediaPlayer.setLooping(true); // Music will loop
-        mediaPlayer.setVolume(1.0f, 1.0f); // Set volume
+//        mediaPlayer = MediaPlayer.create(context, R.raw.background_music);
+//        mediaPlayer.setLooping(true); // Music will loop
+//        mediaPlayer.setVolume(1.0f, 1.0f); // Set volume
 
         // Load and scale the gun bitmap
         gunBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.weapon);
@@ -341,12 +342,7 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
             alienSpaceships.add(alienSpaceship);
 
             // vibrate the phone when an alien spaceship appears
-            Vibrator vibrator = getContext().getSystemService(Vibrator.class);
-            if (vibrator != null) {
-                // for 500 milliseconds
-                vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
-                Log.d("VibrationEvent", "Alien spaceship appeared. Starting vibration.");
-            }
+            GameEffects.vibrate(getContext(), 500);
         }
     }
 

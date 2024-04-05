@@ -3,9 +3,9 @@ package com.example.space_game_v2.feature.game.logic;
 import android.util.Log;
 
 public class ShipProducer extends Thread {
-    private Game game;
+    private GameController game;
 
-    public ShipProducer(Game game) {
+    public ShipProducer(GameController game) {
         this.game = game;
     }
 
@@ -15,7 +15,7 @@ public class ShipProducer extends Thread {
         while (!game.checkFull()) {
 
             // Add a spaceship to the queue
-            game.addSpaceship();
+//            game.addSpaceship();
 
             // Sleep for 2 seconds
             try {
