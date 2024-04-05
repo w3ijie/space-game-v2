@@ -26,36 +26,12 @@ import com.example.space_game_v2.R;
 import android.media.MediaPlayer;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Paint;
 import android.util.Log;
 
+import com.example.space_game_v2.feature.game.elements.Explosion;
+import com.example.space_game_v2.feature.game.elements.Spaceship;
+import com.example.space_game_v2.feature.game.elements.SpaceshipEventListener;
 
-
-// Make sure Spaceship class is accessible to other classes
-class Spaceship {
-    public float x, y;
-    public String type; // Add "alien" as a possible type
-
-    // Existing constructor
-    public Spaceship(int screenWidth, int shipWidth) {
-        this.x = (screenWidth - shipWidth) / 2;
-        this.y = -shipWidth;
-        this.type = new Random().nextBoolean() ? "money" : "bomb";
-    }
-
-    // New constructor for alien spaceship
-    public Spaceship(float x, float y, String type) {
-        this.x = x;
-        this.y = y;
-        this.type = type;
-    }
-}
-
-
-// Listener interface for spaceship events
-interface SpaceshipEventListener {
-    void onSpaceshipReachedBase(Spaceship spaceship);
-}
 
 public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
     private Bitmap alienShipBitmap;
@@ -108,59 +84,6 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
 
     public int getEconomy() {
         return economy;
-    }
-
-    // New Explosion class that handles sprite sheet animation
-    private class Explosion {
-        private Bitmap spriteSheet;
-        private int frameCount; // Set this based on sprite sheet
-        private int frameWidth;
-        private int frameHeight;
-        private int currentFrame;
-        private long lastFrameChangeTime;
-        private long frameDuration; // Duration for each frame in milliseconds
-        private boolean isActive;
-        private float x;
-        private float y;
-
-        public Explosion(Context context, float x, float y) {
-            this.spriteSheet = BitmapFactory.decodeResource(context.getResources(), R.drawable.explosion_sprite);
-            this.frameCount = 12;
-            this.frameWidth = this.spriteSheet.getWidth() / frameCount;
-            this.frameHeight = this.spriteSheet.getHeight();
-            this.currentFrame = 0;
-            this.lastFrameChangeTime = System.currentTimeMillis();
-            this.isActive = true;
-            this.x = x - frameWidth / 2f; // Center the explosion
-            this.y = y - frameHeight / 2f; // Center the explosion
-            this.frameDuration = 10;
-        }
-
-        public void update() {
-            long time = System.currentTimeMillis();
-            if (time > lastFrameChangeTime + frameDuration) {
-                currentFrame++;
-                lastFrameChangeTime = time;
-                if (currentFrame >= frameCount) {
-                    isActive = false;
-                }
-            }
-        }
-
-        public void draw(Canvas canvas) {
-            if (!isActive) {
-                return;
-            }
-            int frameX = currentFrame * frameWidth;
-            Rect frameToDraw = new Rect(frameX, 0, frameX + frameWidth, frameHeight);
-            RectF whereToDraw = new RectF(x, y, x + frameWidth, y + frameHeight);
-            canvas.drawBitmap(spriteSheet, frameToDraw, whereToDraw, null);
-        }
-
-        public boolean isActive() {
-            return isActive;
-        }
-
     }
 
 
@@ -433,8 +356,6 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         }
     }
 
-
-
     private void drawAlienSpaceships(Canvas canvas) {
         synchronized (alienSpaceships) {
             for (Spaceship alienSpaceship : alienSpaceships) {
@@ -451,7 +372,7 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
             explosion.update();
             explosion.draw(canvas);
 
-            if (!explosion.isActive) {
+            if (!explosion.getStatus()) {
                 explosionIterator.remove(); // Remove the explosion if it is no longer active
             }
         }

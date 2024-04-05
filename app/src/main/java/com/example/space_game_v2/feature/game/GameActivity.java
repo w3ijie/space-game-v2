@@ -11,12 +11,12 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.space_game_v2.R;
 import com.example.space_game_v2.BackgroundMusicService;
+import com.example.space_game_v2.feature.game.elements.SpaceshipEventListener;
 import com.example.space_game_v2.feature.main.MainActivity;
+import com.example.space_game_v2.feature.game.elements.Spaceship;
 
 import android.content.Intent;
 import androidx.appcompat.app.AlertDialog;
-
-
 
 public class GameActivity extends AppCompatActivity implements SpaceshipEventListener {
     private ImageView heart1, heart2, heart3;
@@ -35,7 +35,6 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         }
 
         setContentView(R.layout.activity_game);
-        setContentView(R.layout.activity_game);
 
         heart1 = findViewById(R.id.heart1);
         heart2 = findViewById(R.id.heart2);
@@ -47,7 +46,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
         // Ensure ScrollingBackgroundView is ready before setting the listener
         if (scrollingBackgroundView != null) {
-            scrollingBackgroundView.setSpaceshipEventListener(this);
+            scrollingBackgroundView.setSpaceshipEventListener((SpaceshipEventListener) this);
         }
 
         buttonApprove.setOnClickListener(v -> approveSpaceship());
