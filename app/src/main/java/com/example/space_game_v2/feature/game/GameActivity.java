@@ -2,6 +2,7 @@ package com.example.space_game_v2.feature.game;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.widget.Button;
@@ -28,12 +29,6 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Hide the status bar.
-        WindowInsetsController controller = getWindow().getInsetsController();
-        if (controller != null) {
-            controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
-            controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-        }
         // Hide the action bar if present (for activities with ActionBar).
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
@@ -118,17 +113,11 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         });
     }
 
-
-
-
-
-        // Update the gameOver method to call endGame
+    // Update the gameOver method to call endGame
     private void gameOver() {
         endGame();
 
     }
-
-
 
     private void updateEconomyDisplay() {
         tvEconomy.setText("$" + scrollingBackgroundView.getEconomy());
@@ -154,6 +143,15 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         // Resume music when activity is back
         startService(new Intent(this, BackgroundMusicService.class));
         scrollingBackgroundView.resume();
+
+        Window window = getWindow();
+        if (window != null) {
+            WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+                controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            }
+        }
     }
 
 }
