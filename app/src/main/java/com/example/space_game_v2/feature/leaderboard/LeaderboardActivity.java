@@ -50,7 +50,7 @@ public class LeaderboardActivity extends AppCompatActivity {
         adapter = new LeaderboardAdapter(items);
         recyclerView.setAdapter(adapter);
 
-        LeaderboardController.getLeaderboardEntries(new LeaderboardCallback() {
+        LeaderboardController.getLeaderboardEntries(new LeaderboardReadCallback() {
             @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onSuccess(List<LeaderboardEntry> leaderboardEntries) {
