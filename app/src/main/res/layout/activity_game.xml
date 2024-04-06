@@ -4,33 +4,47 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.example.space_game_v2.feature.game.ScrollingBackgroundView
-        android:id="@+id/scrolling_background_view"
+<!--    <com.example.space_game_v2.feature.game.background.ScrollingBackgroundView-->
+<!--        android:id="@+id/scrolling_background_view"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent" />-->
+
+    <com.example.space_game_v2.feature.game.background.BackgroundView
+        android:id="@+id/background_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Approve Button -->
-    <Button
-        android:id="@+id/button_approve"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="16dp"
-        android:text="Approve" />
+        android:weightSum="5">
 
-    <!-- Disapprove Button -->
-    <Button
-        android:id="@+id/button_disapprove"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginStart="16dp"
-        android:text="Disapprove" />
+        <!-- Disapprove Button -->
+        <Button
+            android:id="@+id/button_disapprove"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Disapprove"
+            android:layout_margin="10dp"/>
 
+        <!-- Invisible View for spacing -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="3"/>
+
+        <!-- Approve Button -->
+        <Button
+            android:id="@+id/button_approve"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Approve"
+            android:layout_margin="10dp"/>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tvEconomy"
