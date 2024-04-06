@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.AnimationDrawable;
+import android.media.MediaPlayer;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -220,11 +221,9 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     private void loadBombShipBitmap() {
-        // Load, scale, and set the bomb ship bitmap
         Bitmap originalBombShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bombship);
-        int bombShipScaleFactor = 2; // Adjust this factor to scale the bomb ship size
-        bombShipBitmap = Bitmap.createScaledBitmap(originalBombShipBitmap, originalBombShipBitmap.getWidth() / bombShipScaleFactor, originalBombShipBitmap.getHeight() / bombShipScaleFactor, false);
-        originalBombShipBitmap.recycle(); // Recycle the original bitmap as it's no longer needed
+        bombShipBitmap = Bitmap.createScaledBitmap(originalBombShipBitmap, originalBombShipBitmap.getWidth() / 2, originalBombShipBitmap.getHeight() / 2, false);
+        originalBombShipBitmap.recycle();
     }
 
     private void loadAlienShipBitmap() {
@@ -283,6 +282,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                 // trigger vibration if new
                 if (alienSpaceship.isNew()) {
                     GameEffects.vibrate(getContext(), 500);
+                    playEvilLaughSound();
                     alienSpaceship.setIsNew(false);
                 }
             }
@@ -323,6 +323,11 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         return super.onTouchEvent(event);
     }
 
-
+    private void playEvilLaughSound() {
+        MediaPlayer mediaPlayer = MediaPlayer.create(getContext(), R.raw.evil_laugh);
+        mediaPlayer.setVolume(230, 230);
+        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+        mediaPlayer.start();
+    }
 
 }
