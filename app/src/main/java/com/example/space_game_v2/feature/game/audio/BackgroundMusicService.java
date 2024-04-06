@@ -14,9 +14,8 @@ public class BackgroundMusicService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        // Replace with your music file
         player = MediaPlayer.create(this, R.raw.background_music);
-        player.setLooping(true); // Set looping
+        player.setLooping(true);
         player.setVolume(100, 100);
     }
 
@@ -24,7 +23,7 @@ public class BackgroundMusicService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (player == null) {
             player = MediaPlayer.create(this, R.raw.background_music);
-            player.setLooping(true); // Set looping
+            player.setLooping(true);
             player.setVolume(1.0f, 1.0f);
         }
         if (!player.isPlaying()) {

@@ -9,15 +9,14 @@ import android.graphics.RectF;
 
 import com.example.space_game_v2.R;
 
-// New Explosion class that handles sprite sheet animation
 public class Explosion {
     private Bitmap spriteSheet;
-    private int frameCount; // Set this based on sprite sheet
+    private int frameCount;
     private int frameWidth;
     private int frameHeight;
     private int currentFrame;
     private long lastFrameChangeTime;
-    private long frameDuration; // Duration for each frame in milliseconds
+    private long frameDuration;
     private boolean isActive;
     private float x;
     private float y;
