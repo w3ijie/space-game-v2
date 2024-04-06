@@ -129,12 +129,18 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public void run() {
+
+        final int FPS = 60;
+        final long frameTime = 1000 / FPS;
+        long startTime, timeMillis, waitTime;
+
         SurfaceHolder holder = getHolder();
 
         while (isRunning) {
             if (!holder.getSurface().isValid()) {
                 continue;
             }
+            startTime = System.nanoTime();
 
             Canvas canvas = holder.lockCanvas();
             if (canvas != null) {
@@ -153,6 +159,18 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                     holder.unlockCanvasAndPost(canvas);
                 }
             }
+
+            timeMillis = (System.nanoTime() - startTime) / 1000000;
+            waitTime = frameTime - timeMillis;
+
+            try {
+                if (waitTime > 0) {
+                    Thread.sleep(waitTime);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
@@ -178,11 +196,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         List<Spaceship> spaceships = GameController.getInstance().getCurrentSpaceships();
         for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext(); ) {
             Spaceship spaceship = iterator.next();
-            Bitmap shipBitmap = scaledMoneyShipBitmap;
-
-            if ("bomb".equals(spaceship.type)) {
-                shipBitmap = bombShipBitmap;
-            }
+            Bitmap shipBitmap = getBitmapForSpaceship(spaceship);
 
             spaceship.setY(spaceship.getY() + spaceshipSpeed);
             spaceship.setX((canvas.getWidth() - shipBitmap.getWidth()) / 2f);
@@ -193,7 +207,8 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
             canvas.drawBitmap(shipBitmap, shipX, shipY, null);
 
             if (shipY + shipBitmap.getHeight() >= spaceStationY) {
-                iterator.remove(); // Remove spaceship from the list
+                iterator.remove();
+                GameController.getInstance().nearestSpaceshipTouchedBase();
                 if (spaceshipEventListener != null) {
                     spaceshipEventListener.onSpaceshipReachedBase(spaceship);
                 }
@@ -203,10 +218,9 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
     private void loadMoneyShipBitmap() {
         // Load, scale, and set the money ship bitmap
-        Bitmap originalMoneyShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.moneyship);
-        int moneyShipScaleFactor = 2; // Adjust this factor to scale the money ship size
-        scaledMoneyShipBitmap = Bitmap.createScaledBitmap(originalMoneyShipBitmap, originalMoneyShipBitmap.getWidth() / moneyShipScaleFactor, originalMoneyShipBitmap.getHeight() / moneyShipScaleFactor, false);
-        originalMoneyShipBitmap.recycle(); // Recycle the original bitmap as it's no longer needed
+        Bitmap original = BitmapFactory.decodeResource(getResources(), R.drawable.moneyship);
+        scaledMoneyShipBitmap = Bitmap.createScaledBitmap(original, original.getWidth() / 2, original.getHeight() / 2, false);
+        original.recycle();
     }
 
     private void loadBombShipBitmap() {

@@ -1,6 +1,8 @@
 package com.example.space_game_v2.feature.game.logic;
 
 
+import android.util.Log;
+
 import com.example.space_game_v2.feature.game.elements.Spaceship;
 import com.example.space_game_v2.feature.game.elements.ExplosionEventListener;
 
@@ -61,32 +63,29 @@ public class GameController {
         return spaceshipQueue.size() >= MAX_QUEUE_SIZE;
     }
 
-    public boolean approveNearestSpaceship() {
+    public void approveNearestSpaceship() {
         if (!spaceshipQueue.isEmpty()) {
             // queue removes the first in
             Spaceship current = spaceshipQueue.remove();
 
             if ("bomb".equals(current.type)) {
-                return false;
+                decrementHeart();
             } else if ("money".equals(current.type)) {
                 points += POINTS_PER_SPACESHIP;
-                return true;
             }
         }
-        return true;
     }
-    public boolean disapproveNearestSpaceship() {
+
+    public void disapproveNearestSpaceship() {
         if (!spaceshipQueue.isEmpty()) {
             Spaceship nearestSpaceship = spaceshipQueue.remove();
 
             if ("money".equals(nearestSpaceship.type)) {
-                return false;
+                decrementHeart();
             } else if ("bomb".equals(nearestSpaceship.type)) {
                 triggerExplosion(nearestSpaceship);
-                return true;
             }
         }
-        return true;
     }
 
     public void triggerExplosion(Spaceship spaceship) {
@@ -97,6 +96,16 @@ public class GameController {
 
     public synchronized List<Spaceship> getCurrentSpaceships() {
         return new ArrayList<>(spaceshipQueue.getAll());
+    }
+
+    public void nearestSpaceshipTouchedBase() {
+
+        if (!spaceshipQueue.isEmpty()) {
+            Spaceship touchedBaseShip = spaceshipQueue.remove();
+
+            Log.d("GameController", "Spaceship has crashed into the base.");
+            decrementHeart();
+        }
     }
 
     public boolean isGamePaused() {

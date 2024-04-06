@@ -69,32 +69,30 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     }
 
     private void approveSpaceship() {
-        boolean approvedCorrectly = GameController.getInstance().approveNearestSpaceship();
-        if (!approvedCorrectly) {
-            decrementLives();
-        }
-        updatePointsDisplay();
+        GameController.getInstance().approveNearestSpaceship();
+        runOnUiThread(() -> {
+            updatePointsDisplay();
+            updateHeartsDisplay();
+        });
+
     }
 
     private void disapproveSpaceship() {
-        boolean disapprovedCorrectly = GameController.getInstance().disapproveNearestSpaceship();
-        if (!disapprovedCorrectly) {
-            decrementLives(); // Decrement lives if a money ship is incorrectly disapproved
-        }
+        GameController.getInstance().disapproveNearestSpaceship();
+        runOnUiThread(this::updateHeartsDisplay);
     }
     @Override
     public void onSpaceshipReachedBase(Spaceship spaceship) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastLifeDecrementTime >= LIFE_DECREMENT_COOLDOWN) {
             runOnUiThread(() -> {
-                decrementLives();
                 lastLifeDecrementTime = currentTime;
+                decrementLives();
             });
         }
     }
 
     private void decrementLives() {
-        GameController.getInstance().decrementHeart();
         updateHeartsDisplay();
     }
 
