@@ -76,7 +76,7 @@ public class LeaderboardController {
 
         // build url
         String baseURL = BuildConfig.SERVER_URL;
-        String url = baseURL + "/api/v1/leaderboard";
+        String url = baseURL + "/api/v1/scores";
 
         // jwt
         String jwtToken = JwtUtils.generateSignedToken(BuildConfig.TOKEN);
@@ -85,6 +85,7 @@ public class LeaderboardController {
         // convert entry to json
         Gson gson = new Gson();
         String json = gson.toJson(entry);
+        Log.i("LeaderboardAPI", "insertLeaderboardEntry: " + json);
 
         // create a req body
         RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
@@ -104,7 +105,7 @@ public class LeaderboardController {
                 if (response.isSuccessful() && response.body() != null) {
                     String responseBody = response.body().string();
                     callback.onSuccess(true);
-                    Log.i("LeaderboardAPI", "Response is successful");
+                    Log.i("LeaderboardAPI", "Response is successful:" + responseBody);
                 } else {
                     callback.onError("Request failed: " + response);
                     Log.e("LeaderboardAPI", "Error inserting leaderboard entry");

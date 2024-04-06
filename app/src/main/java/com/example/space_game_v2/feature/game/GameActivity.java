@@ -9,6 +9,8 @@ import android.view.WindowInsetsController;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +19,9 @@ import com.example.space_game_v2.feature.game.audio.BackgroundMusicService;
 import com.example.space_game_v2.feature.game.background.BackgroundView;
 import com.example.space_game_v2.feature.game.elements.SpaceshipEventListener;
 import com.example.space_game_v2.feature.game.logic.GameController;
+import com.example.space_game_v2.feature.leaderboard.LeaderboardController;
+import com.example.space_game_v2.feature.leaderboard.LeaderboardEntry;
+import com.example.space_game_v2.feature.leaderboard.LeaderboardInsertCallback;
 import com.example.space_game_v2.feature.main.MainActivity;
 import com.example.space_game_v2.feature.game.elements.Spaceship;
 
@@ -117,6 +122,8 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     private void gameOver() {
         // Ensure this is called on the main thread as it will update the UI
         runOnUiThread(() -> {
+            int finalScore = GameController.getInstance().getPoints();
+
             GameController.getInstance().endGame();
             buttonApprove.setEnabled(false);
             buttonDisapprove.setEnabled(false);
@@ -124,12 +131,34 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
             // Stop the music service
             stopService(new Intent(GameActivity.this, BackgroundMusicService.class));
 
+            // Use an EditText as the input field for the player's name
+            final EditText playerNameInput = new EditText(this);
+            playerNameInput.setHint("Enter your name");
+
             // Show a dialog instead of a toast
             AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity.this);
-            builder.setTitle("Game Over");
-            builder.setMessage("You've failed the Singaporean Economy.");
-            builder.setPositiveButton("Return to Main Menu", (dialog, which) -> returnToMainMenu());
-            builder.setCancelable(false); // Prevents the dialog from being dismissed on back press
+            builder.setTitle("Game Over")
+                    .setMessage("You've scored $" + finalScore + "\n\nEnter your name for the leaderboard:")
+                    .setView(playerNameInput) // Add the EditText to the dialog
+                    .setPositiveButton("Submit", (dialog, which) -> {
+                        String playerName = playerNameInput.getText().toString();
+
+                        LeaderboardController.insertLeaderboardEntry(new LeaderboardEntry(playerName, finalScore), new LeaderboardInsertCallback() {
+                            @Override
+                            public void onSuccess(Boolean isInserted) {
+                                runOnUiThread(() -> Toast.makeText(GameActivity.this, "Submitted!", Toast.LENGTH_SHORT).show());
+                            }
+
+                            @Override
+                            public void onError(String errorMessage) {
+                                runOnUiThread(() -> Toast.makeText(GameActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show());
+                            }
+                        });
+                        returnToMainMenu();
+
+                    })
+                    .setNegativeButton("Cancel", (dialog, which) -> dialog.cancel())
+                    .setCancelable(false);
             builder.show();
         });
 

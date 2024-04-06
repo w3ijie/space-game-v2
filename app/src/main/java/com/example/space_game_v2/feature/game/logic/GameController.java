@@ -122,6 +122,9 @@ public class GameController {
     public void startGame() {
         isGamePaused = false;
         isGameActive = true;
+        points = 0;
+        hearts = 3;
+        spaceshipSpeed = 1;
         startShipProduction();
         startAlienProduction();
     }
@@ -140,6 +143,7 @@ public class GameController {
         aliens.clear();
         points = 0;
         hearts = 3;
+        spaceshipSpeed = 1;
     }
 
     public void pauseGame() {
