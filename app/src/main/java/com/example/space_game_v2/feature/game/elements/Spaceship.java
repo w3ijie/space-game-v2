@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class Spaceship {
     private float x, y;
-    public String type; // Add "alien" as a possible type
+    public String type;
 
     public Spaceship() {
         this.type = new Random().nextBoolean() ? "money" : "bomb";

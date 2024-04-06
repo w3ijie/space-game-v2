@@ -4,6 +4,9 @@ import android.util.Log;
 
 import com.example.space_game_v2.feature.game.elements.Spaceship;
 
+/** ShipProducer
+ * - Sole focus is to produce spaceships
+ */
 public class ShipProducer extends Thread {
     private GameController game;
 
@@ -18,12 +21,14 @@ public class ShipProducer extends Thread {
 
             // Add a spaceship to the queue
             game.addSpaceship(new Spaceship());
+            Log.i("Ship Producer", "Insert new spaceship");
 
             // Sleep for 2 seconds
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
-                Log.e("Ship Producer", "Error", e);
+                Thread.currentThread().interrupt();
+                Log.e("Ship Producer", "Thread was interrupted", e);
             }
         }
 

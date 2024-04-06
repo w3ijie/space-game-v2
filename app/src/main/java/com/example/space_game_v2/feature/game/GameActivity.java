@@ -13,6 +13,7 @@ import com.example.space_game_v2.R;
 import com.example.space_game_v2.feature.game.audio.BackgroundMusicService;
 import com.example.space_game_v2.feature.game.background.BackgroundView;
 import com.example.space_game_v2.feature.game.elements.SpaceshipEventListener;
+import com.example.space_game_v2.feature.game.logic.ShipProducer;
 import com.example.space_game_v2.feature.game.logic.GameController;
 import com.example.space_game_v2.feature.main.MainActivity;
 import com.example.space_game_v2.feature.game.elements.Spaceship;
@@ -50,6 +51,10 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 //        if (backgroundView != null) {
 //            backgroundView.setSpaceshipEventListener((SpaceshipEventListener) this);
 //        }
+
+        GameController gameController = GameController.getInstance();
+        ShipProducer shipProducer = new ShipProducer(gameController);
+        shipProducer.start(); // Start the producer thread
 
         buttonApprove.setOnClickListener(v -> approveSpaceship());
         buttonDisapprove.setOnClickListener(v -> disapproveSpaceship());

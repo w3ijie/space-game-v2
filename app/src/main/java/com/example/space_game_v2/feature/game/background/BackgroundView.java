@@ -35,15 +35,25 @@ import java.util.concurrent.TimeUnit;
  * BackgroundView
  * - In charge of rendering the background images
  * - Uses Threads to draw to offload from the main UI
- *
+ * - Listens to GameController and render the state into UI
  */
 public class BackgroundView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
 
+    // bitmaps - render all the relevant assets
     private Bitmap backgroundBitmap;
+    private Bitmap alienShipBitmap;
+    private Bitmap scaledMoneyShipBitmap; // Add this class member for the scaled money ship bitmap
+    private Bitmap bombShipBitmap, moneyShipBitmap;
+
+
+
     private SpaceStation spaceStation;
 
     private float backgroundY = 0;
     private final int scrollSpeed = 3;
+    private int spaceshipSpeed = 1;
+
+
     private boolean isRunning = true;
     private Thread thread;
 
@@ -67,12 +77,17 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         getHolder().addCallback(this);
 
         // Load and set the background bitmap
-        backgroundBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.background_game);}
+        backgroundBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.background_game);
+        loadMoneyShipBitmap();
+        loadBombShipBitmap();
+        loadAlienShipBitmap();
+    }
+
 
 
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        // draw the station once bg has bee created
+        // draw the station once bg has been created because it needs to know
         spaceStation = new SpaceStation(getContext(), getWidth(), getHeight());
 
         thread = new Thread(this);
@@ -107,6 +122,13 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                         spaceStation.draw(canvas);
                         Log.i("Background View", "Drawing space station");
                     }
+
+                    float spaceStationY = spaceStation.getYOfSpaceStation(canvas);
+
+                    List<Spaceship> spaceships = GameController.getInstance().getCurrentSpaceships();
+                    Log.i("Background View", "Spaceships: " + spaceships.size());
+                    drawSpaceships(canvas, spaceStationY);
+
                     holder.unlockCanvasAndPost(canvas);
                 }
             }
@@ -124,5 +146,71 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         canvas.drawBitmap(backgroundBitmap, 0, backgroundY, null);
         canvas.drawBitmap(backgroundBitmap, 0, backgroundY - backgroundBitmap.getHeight(), null);
     }
+
+
+    private void drawSpaceships(Canvas canvas, float spaceStationY) {
+        List<Spaceship> spaceships = GameController.getInstance().getCurrentSpaceships();
+        for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext(); ) {
+            Spaceship spaceship = iterator.next();
+
+            spaceship.setY(spaceship.getY() + spaceshipSpeed);
+            float shipX = 0;
+            float shipY = spaceship.getY();
+
+            Bitmap shipBitmap = null;
+
+            if ("money".equals(spaceship.type)) {
+                shipBitmap = scaledMoneyShipBitmap;
+                shipX = (canvas.getWidth() - shipBitmap.getWidth()) / 2; // Center the money ship
+            } else if ("bomb".equals(spaceship.type)) {
+                shipBitmap = bombShipBitmap;
+                shipX = spaceship.getX(); // Use the x position of the bomb ship
+            }
+
+//            Bitmap shipBitmap = getBitmapForSpaceship(spaceship);
+
+            if (shipBitmap != null) {
+                canvas.drawBitmap(shipBitmap, shipX, shipY, null);
+            }
+            if (shipY + shipBitmap.getHeight() >= spaceStationY) {
+                iterator.remove(); // Remove spaceship from the list
+//                if (spaceshipEventListener != null) {
+//                    spaceshipEventListener.onSpaceshipReachedBase(spaceship);
+//                }
+            }
+        }
+    }
+
+    private void loadMoneyShipBitmap() {
+        // Load, scale, and set the money ship bitmap
+        Bitmap originalMoneyShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.moneyship);
+        int moneyShipScaleFactor = 2; // Adjust this factor to scale the money ship size
+        scaledMoneyShipBitmap = Bitmap.createScaledBitmap(originalMoneyShipBitmap, originalMoneyShipBitmap.getWidth() / moneyShipScaleFactor, originalMoneyShipBitmap.getHeight() / moneyShipScaleFactor, false);
+        originalMoneyShipBitmap.recycle(); // Recycle the original bitmap as it's no longer needed
+    }
+
+    private void loadBombShipBitmap() {
+        // Load, scale, and set the bomb ship bitmap
+        Bitmap originalBombShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bombship);
+        int bombShipScaleFactor = 2; // Adjust this factor to scale the bomb ship size
+        bombShipBitmap = Bitmap.createScaledBitmap(originalBombShipBitmap, originalBombShipBitmap.getWidth() / bombShipScaleFactor, originalBombShipBitmap.getHeight() / bombShipScaleFactor, false);
+        originalBombShipBitmap.recycle(); // Recycle the original bitmap as it's no longer needed
+    }
+
+    private void loadAlienShipBitmap() {
+        alienShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.alien);
+    }
+
+    private Bitmap getBitmapForSpaceship(Spaceship spaceship) {
+        switch (spaceship.type) {
+            case "money":
+                return scaledMoneyShipBitmap;
+            case "bomb":
+                return bombShipBitmap;
+            default:
+                return null;
+        }
+    }
+
 
 }

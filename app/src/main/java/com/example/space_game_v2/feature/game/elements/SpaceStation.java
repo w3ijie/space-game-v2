@@ -38,7 +38,7 @@ public class SpaceStation {
         canvas.drawBitmap(gunBitmap, gunX, gunY, null);
     }
 
-    private float getYOfSpaceStation(Canvas canvas) {
+    public float getYOfSpaceStation(Canvas canvas) {
         // Draw the space station
         float spaceStationX = (canvas.getWidth() - scaledSpaceStationBitmap.getWidth()) / 2;
         float spaceStationY = canvas.getHeight() - scaledSpaceStationBitmap.getHeight() + 200 + gunBitmap.getHeight();

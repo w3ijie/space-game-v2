@@ -7,10 +7,11 @@ import com.example.space_game_v2.feature.game.elements.ExplosionEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Implement game logic here, handle spaceship management, economy, user interactions.
- * Interact with backgroundview here
- * Interact with other views such as spaceship, explosions etc
+/** GameController
+ * - Implement game logic here, handle spaceship management, economy, user interactions.
+ * - Interact with backgroundview here
+ * - Interact with other views such as spaceship, explosions etc
+ * - Interacts with ShipProducer through a queue that it listens to
  */
 public class GameController {
     // implement as singleton
@@ -21,6 +22,7 @@ public class GameController {
     private int hearts;
 
     private final int POINTS_PER_SPACESHIP = 100;
+    private final int MAX_QUEUE_SIZE = 6;
     private ExplosionEventListener explosionEventListener;
 
 
@@ -32,7 +34,7 @@ public class GameController {
     }
 
     private GameController() {
-        spaceshipQueue = new Queue(5);
+        spaceshipQueue = new Queue(MAX_QUEUE_SIZE);
         resetSpaceshipQueue();
     }
 
@@ -50,7 +52,9 @@ public class GameController {
     }
     public void inspectSpaceship() {}
 
-    public boolean checkFull() {return true;}
+    public boolean checkFull() {
+        return spaceshipQueue.size() >= MAX_QUEUE_SIZE;
+    }
 
     public boolean approveNearestSpaceship() {
         if (!spaceshipQueue.isEmpty()) {
