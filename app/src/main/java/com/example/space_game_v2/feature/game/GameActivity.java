@@ -15,7 +15,6 @@ import com.example.space_game_v2.R;
 import com.example.space_game_v2.feature.game.audio.BackgroundMusicService;
 import com.example.space_game_v2.feature.game.background.BackgroundView;
 import com.example.space_game_v2.feature.game.elements.SpaceshipEventListener;
-import com.example.space_game_v2.feature.game.logic.ShipProducer;
 import com.example.space_game_v2.feature.game.logic.GameController;
 import com.example.space_game_v2.feature.main.MainActivity;
 import com.example.space_game_v2.feature.game.elements.Spaceship;
@@ -26,9 +25,9 @@ import androidx.appcompat.app.AlertDialog;
 public class GameActivity extends AppCompatActivity implements SpaceshipEventListener {
     private ImageView heart1, heart2, heart3;
     private TextView tvEconomy;
-    private BackgroundView backgroundView;
     private Button buttonApprove, buttonDisapprove;
     private int lives = 3; // Start with 3 lives
+    private BackgroundView backgroundView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,15 +43,12 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         heart1 = findViewById(R.id.heart1);
         heart2 = findViewById(R.id.heart2);
         heart3 = findViewById(R.id.heart3);
-        backgroundView = findViewById(R.id.background_view);
         tvEconomy = findViewById(R.id.tvEconomy);
         buttonApprove = findViewById(R.id.button_approve);
         buttonDisapprove = findViewById(R.id.button_disapprove);
 
-        // Ensure ScrollingBackgroundView is ready before setting the listener
-//        if (backgroundView != null) {
-//            backgroundView.setSpaceshipEventListener((SpaceshipEventListener) this);
-//        }
+        backgroundView = findViewById(R.id.background_view);
+        backgroundView.setSpaceshipEventListener(this);
 
         buttonApprove.setOnClickListener(v -> approveSpaceship());
         buttonDisapprove.setOnClickListener(v -> disapproveSpaceship());

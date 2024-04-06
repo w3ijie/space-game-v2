@@ -42,12 +42,14 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     // bitmaps - render all the relevant assets
     private Bitmap backgroundBitmap;
     private Bitmap alienShipBitmap;
-    private Bitmap scaledMoneyShipBitmap; // Add this class member for the scaled money ship bitmap
+    private Bitmap scaledMoneyShipBitmap;
     private Bitmap bombShipBitmap, moneyShipBitmap;
 
 
 
     private SpaceStation spaceStation;
+    private SpaceshipEventListener spaceshipEventListener;
+
 
     private float backgroundY = 0;
     private final int scrollSpeed = 3;
@@ -84,7 +86,11 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         loadAlienShipBitmap();
 
         scheduler = Executors.newSingleThreadScheduledExecutor();
+    }
 
+
+    public void setSpaceshipEventListener(SpaceshipEventListener listener) {
+        this.spaceshipEventListener = listener;
     }
 
 
@@ -138,7 +144,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                         spaceStation.draw(canvas);
                     }
 
-                    float spaceStationY = spaceStation.getYOfSpaceStation(canvas);
+                    float spaceStationY = spaceStation.getYOfSpaceStation();
                     drawSpaceships(canvas, spaceStationY);
 
                     holder.unlockCanvasAndPost(canvas);
@@ -179,16 +185,14 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                 shipX = (canvas.getWidth() - shipBitmap.getWidth()) / 2f;
             }
 
-//            Bitmap shipBitmap = getBitmapForSpaceship(spaceship);
-
             if (shipBitmap != null) {
                 canvas.drawBitmap(shipBitmap, shipX, shipY, null);
             }
             if (shipY + shipBitmap.getHeight() >= spaceStationY) {
                 iterator.remove(); // Remove spaceship from the list
-//                if (spaceshipEventListener != null) {
-//                    spaceshipEventListener.onSpaceshipReachedBase(spaceship);
-//                }
+                if (spaceshipEventListener != null) {
+                    spaceshipEventListener.onSpaceshipReachedBase(spaceship);
+                }
             }
         }
     }
