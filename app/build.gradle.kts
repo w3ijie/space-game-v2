@@ -1,10 +1,20 @@
+import java.util.Properties
+
+val localProperties = Properties()
+localProperties.load(File(rootProject.projectDir, "local.properties").inputStream())
+
 plugins {
     alias(libs.plugins.androidApplication)
 }
 
+
 android {
     namespace = "com.example.space_game_v2"
     compileSdk = 34
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.example.space_game_v2"
@@ -14,6 +24,17 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val serverUrl = localProperties.getProperty("server.url", "")
+        buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
+
+
+        val secretKey = localProperties.getProperty("secret.key", "")
+        buildConfigField("String", "SECRET_KEY", "\"$secretKey\"")
+
+
+        val token = localProperties.getProperty("token", "")
+        buildConfigField("String", "TOKEN", "\"$token\"")
     }
 
     buildTypes {
@@ -32,7 +53,10 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.okhttp)
+    implementation(libs.java.jwt)
+    implementation(libs.gson)
+    implementation(libs.recyclerview)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

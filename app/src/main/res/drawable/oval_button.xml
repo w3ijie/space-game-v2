@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle"> <!-- Use rectangle but with rounded corners to create an oval effect -->
+    <solid android:color="#800080"/> <!-- Purple background, adjust the color as needed -->
+
+    <!-- Use a large enough corner radius to create an oval effect -->
+    <corners android:radius="50dp"/> <!-- Adjust the radius to fit your design -->
+</shape>
