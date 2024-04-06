@@ -73,7 +73,6 @@ public class Queue {
         return queue.length;
     }
 
-
     synchronized List<Spaceship> getAll() {
         List<Spaceship> list = new ArrayList<>();
         int index = front;
@@ -82,5 +81,15 @@ public class Queue {
             index = (index + 1) % queue.length;
         }
         return list;
+    }
+
+    synchronized void clear() {
+        for (int i = 0; i < queue.length; i++) {
+            queue[i] = null;
+        }
+        front = 0;
+        back = 0;
+        itemCount = 0;
+        this.notifyAll();
     }
 }

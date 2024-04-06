@@ -8,6 +8,8 @@ import android.view.WindowInsetsController;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.space_game_v2.R;
 import com.example.space_game_v2.feature.game.audio.BackgroundMusicService;
@@ -52,20 +54,28 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 //            backgroundView.setSpaceshipEventListener((SpaceshipEventListener) this);
 //        }
 
-        GameController gameController = GameController.getInstance();
-        ShipProducer shipProducer = new ShipProducer(gameController);
-        shipProducer.start(); // Start the producer thread
-
         buttonApprove.setOnClickListener(v -> approveSpaceship());
         buttonDisapprove.setOnClickListener(v -> disapproveSpaceship());
+
+        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+            @Override
+            public void handleOnBackPressed() {
+                // Handle the back button event
+                GameController.getInstance().stopGame();
+                finish();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
+
+        GameController.getInstance().startGame();
     }
 
     private void approveSpaceship() {
         boolean approvedCorrectly = GameController.getInstance().approveNearestSpaceship();
         if (!approvedCorrectly) {
-            decrementLives(); // Decrement lives if a bomb ship is incorrectly approved
+            decrementLives();
         }
-        updateEconomyDisplay();
+        updatePointsDisplay();
     }
 
     private void disapproveSpaceship() {
@@ -76,7 +86,6 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     }
     @Override
     public void onSpaceshipReachedBase(Spaceship spaceship) {
-        // This method is called from the game thread, UI updates must be run on the main thread.
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -86,23 +95,33 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     }
 
     private void decrementLives() {
-        lives--;
-        updateLivesDisplay();
-        if (lives <= 0) {
+        GameController.getInstance().decrementHeart();
+        updateHeartsDisplay();
+    }
+
+    private void updateHeartsDisplay() {
+        // Fetch hearts from GameController
+        int hearts = GameController.getInstance().getHearts();
+
+        if (hearts <= 0) {
             gameOver();
         }
+
+        heart1.setVisibility(hearts >= 1 ? View.VISIBLE : View.INVISIBLE);
+        heart2.setVisibility(hearts >= 2 ? View.VISIBLE : View.INVISIBLE);
+        heart3.setVisibility(hearts >= 3 ? View.VISIBLE : View.INVISIBLE);
     }
 
-    private void updateLivesDisplay() {
-        heart1.setVisibility(lives >= 1 ? View.VISIBLE : View.INVISIBLE);
-        heart2.setVisibility(lives >= 2 ? View.VISIBLE : View.INVISIBLE);
-        heart3.setVisibility(lives >= 3 ? View.VISIBLE : View.INVISIBLE);
+
+    private void updatePointsDisplay() {
+        tvEconomy.setText("$" + String.valueOf(GameController.getInstance().getPoints()));
     }
 
-    private void endGame() {
+    // Update the gameOver method to call endGame
+    private void gameOver() {
         // Ensure this is called on the main thread as it will update the UI
         runOnUiThread(() -> {
-//            scrollingBackgroundView.stopGame();
+            GameController.getInstance().endGame();
             buttonApprove.setEnabled(false);
             buttonDisapprove.setEnabled(false);
 
@@ -117,16 +136,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
             builder.setCancelable(false); // Prevents the dialog from being dismissed on back press
             builder.show();
         });
-    }
 
-    // Update the gameOver method to call endGame
-    private void gameOver() {
-        endGame();
-
-    }
-
-    private void updateEconomyDisplay() {
-//        tvEconomy.setText("$" + backgroundView.getEconomy());
     }
 
     private void returnToMainMenu() {
@@ -140,7 +150,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         super.onPause();
         // Stop music when activity is not visible
         stopService(new Intent(this, BackgroundMusicService.class));
-//        backgroundView.pause();
+        GameController.getInstance().stopGame();
     }
 
     @Override
@@ -148,7 +158,10 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         super.onResume();
         // Resume music when activity is back
         startService(new Intent(this, BackgroundMusicService.class));
-//        backgroundView.resume();
+
+        if (!GameController.getInstance().isGameActive()) {
+            GameController.getInstance().resumeGame();
+        }
 
         Window window = getWindow();
         if (window != null) {
@@ -159,5 +172,13 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
             }
         }
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        stopService(new Intent(this, BackgroundMusicService.class));
+        GameController.getInstance().stopGame();
+    }
+
 
 }

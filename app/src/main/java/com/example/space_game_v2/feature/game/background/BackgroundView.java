@@ -51,10 +51,11 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
     private float backgroundY = 0;
     private final int scrollSpeed = 3;
-    private int spaceshipSpeed = 1;
 
 
     private boolean isRunning = true;
+
+    private ScheduledExecutorService scheduler;
     private Thread thread;
 
 
@@ -81,8 +82,10 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         loadMoneyShipBitmap();
         loadBombShipBitmap();
         loadAlienShipBitmap();
-    }
 
+        scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    }
 
 
     @Override
@@ -102,6 +105,19 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
 
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdownNow();
+        }
+        boolean retry = true;
+        isRunning = false;
+        while (retry) {
+            try {
+                thread.join();
+                retry = false;
+            } catch (InterruptedException e) {
+            }
+        }
+
     }
 
     @Override
@@ -120,13 +136,9 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                     updateAndDrawBackground(canvas);
                     if (spaceStation != null) {
                         spaceStation.draw(canvas);
-                        Log.i("Background View", "Drawing space station");
                     }
 
                     float spaceStationY = spaceStation.getYOfSpaceStation(canvas);
-
-                    List<Spaceship> spaceships = GameController.getInstance().getCurrentSpaceships();
-                    Log.i("Background View", "Spaceships: " + spaceships.size());
                     drawSpaceships(canvas, spaceStationY);
 
                     holder.unlockCanvasAndPost(canvas);
@@ -153,7 +165,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext(); ) {
             Spaceship spaceship = iterator.next();
 
-            spaceship.setY(spaceship.getY() + spaceshipSpeed);
+            spaceship.setY(spaceship.getY() + spaceship.getVelocity());
             float shipX = 0;
             float shipY = spaceship.getY();
 
@@ -164,7 +176,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                 shipX = (canvas.getWidth() - shipBitmap.getWidth()) / 2; // Center the money ship
             } else if ("bomb".equals(spaceship.type)) {
                 shipBitmap = bombShipBitmap;
-                shipX = spaceship.getX(); // Use the x position of the bomb ship
+                shipX = (canvas.getWidth() - shipBitmap.getWidth()) / 2f;
             }
 
 //            Bitmap shipBitmap = getBitmapForSpaceship(spaceship);
