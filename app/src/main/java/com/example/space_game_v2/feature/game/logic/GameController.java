@@ -29,6 +29,11 @@ public class GameController {
     private int points;
     private int hearts;
 
+    private int spaceshipSpeed = 1;
+    private long lastSpeedIncreaseTime = System.currentTimeMillis();
+    private final long SPEED_INCREASE_INTERVAL = 2000;
+
+
     private final int POINTS_PER_SPACESHIP = 100;
     private final int MAX_QUEUE_SIZE = 6;
     private ExplosionEventListener explosionEventListener;
@@ -196,6 +201,19 @@ public class GameController {
 
     public int getHearts() {
         return hearts;
+    }
+
+
+    public void increaseSpaceshipSpeed() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastSpeedIncreaseTime >= SPEED_INCREASE_INTERVAL) {
+            spaceshipSpeed++;
+            lastSpeedIncreaseTime = currentTime;
+        }
+    }
+
+    public int getSpaceshipSpeed() {
+        return spaceshipSpeed;
     }
 
 }

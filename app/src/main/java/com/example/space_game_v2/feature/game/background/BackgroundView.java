@@ -53,7 +53,6 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
     private float backgroundY = 0;
     private final int scrollSpeed = 3;
-    private int spaceshipSpeed = 1;
     private long lastSpawnTime = System.currentTimeMillis();
 
 
@@ -157,6 +156,8 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                     drawExplosions(canvas);
                     drawAlienSpaceships(canvas);
 
+                    GameController.getInstance().increaseSpaceshipSpeed();
+
                     holder.unlockCanvasAndPost(canvas);
                 }
             }
@@ -189,12 +190,9 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
 
     private void drawSpaceships(Canvas canvas, float spaceStationY) {
-        if (System.currentTimeMillis() - lastSpawnTime >= 2000) {
-            lastSpawnTime = System.currentTimeMillis();
-            spaceshipSpeed++; // Increase speed for difficulty
-        }
-
         List<Spaceship> spaceships = GameController.getInstance().getCurrentSpaceships();
+        int spaceshipSpeed = GameController.getInstance().getSpaceshipSpeed();
+
         for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext(); ) {
             Spaceship spaceship = iterator.next();
             Bitmap shipBitmap = getBitmapForSpaceship(spaceship);
