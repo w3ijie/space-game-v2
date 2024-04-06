@@ -155,6 +155,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                     drawSpaceships(canvas, spaceStationY);
 
                     drawExplosions(canvas);
+                    drawAlienSpaceships(canvas);
 
                     holder.unlockCanvasAndPost(canvas);
                 }
@@ -236,10 +237,10 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     private Bitmap getBitmapForSpaceship(Spaceship spaceship) {
-        switch (spaceship.type) {
-            case "money":
+        switch (spaceship.getSpaceshipType()) {
+            case MONEY:
                 return scaledMoneyShipBitmap;
-            case "bomb":
+            case BOMB:
                 return bombShipBitmap;
             default:
                 return null;
@@ -270,5 +271,70 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
             }
         }
     }
+
+    private void drawAlienSpaceships(Canvas canvas) {
+        synchronized (GameController.getInstance().getAliens()) {
+            for (Spaceship alienSpaceship : GameController.getInstance().getAliens()) {
+
+                if (alienSpaceship.getX() == 0f) {
+                    Random random = new Random();
+                    int x = random.nextInt(getWidth() - alienShipBitmap.getWidth());
+                    int y = random.nextInt(getHeight() - alienShipBitmap.getHeight());
+                    alienSpaceship.setX(x);
+                    alienSpaceship.setY(y);
+                }
+                canvas.drawBitmap(alienShipBitmap, alienSpaceship.getX(), alienSpaceship.getY(), null);
+
+                // Check if the spaceship is new and trigger vibration
+                if (alienSpaceship.isNew()) {
+                    GameEffects.vibrate(getContext(), 500);
+                    alienSpaceship.setIsNew(false);
+                }
+            }
+        }
+    }
+
+
+    // Override the onTouchEvent method here
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        // Check if the event is a touch down action
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            // Get the x and y coordinates of the touch event
+            float touchX = event.getX();
+            float touchY = event.getY();
+
+            // Synchronize access to alienSpaceships to ensure thread safety
+            synchronized (GameController.getInstance().getAliens()) {
+                // Create an iterator to safely remove items from the list while iterating
+                Iterator<Spaceship> iterator = GameController.getInstance().getAliens().iterator();
+
+                while (iterator.hasNext()) {
+                    Spaceship spaceship = iterator.next();
+
+                    // Calculate the bounding box of the current spaceship
+                    float left = spaceship.getX();
+                    float top = spaceship.getY();
+                    float right = left + alienShipBitmap.getWidth();
+                    float bottom = top + alienShipBitmap.getHeight();
+
+                    // Check if the touch coordinates are within the bounding box of the spaceship
+                    if (touchX >= left && touchX <= right && touchY >= top && touchY <= bottom) {
+                        // Touch is within the spaceship bounds, so remove the spaceship
+                        iterator.remove();
+                        break;
+                    }
+                }
+            }
+
+            // Indicate that the touch event was handled
+            return true;
+        }
+
+        // Pass the event up to the parent class if it's not a touch down action
+        return super.onTouchEvent(event);
+    }
+
+
 
 }

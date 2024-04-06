@@ -4,10 +4,18 @@ import java.util.Random;
 
 public class Spaceship {
     private float x, y;
-    public String type;
+    public enum SpaceshipType {
+        MONEY, BOMB, ALIEN
+    }
+    private SpaceshipType spaceshipType;
+    private boolean isNew;
 
     public Spaceship() {
-        this.type = new Random().nextBoolean() ? "money" : "bomb";
+        this.spaceshipType = new Random().nextBoolean() ? SpaceshipType.MONEY : SpaceshipType.BOMB;
+    }
+
+    public Spaceship(SpaceshipType type) {
+        this.spaceshipType = type;
     }
 
     public float getX() {
@@ -24,5 +32,16 @@ public class Spaceship {
 
     public void setY(float y) {
         this.y = y;
+    }
+
+    public void setIsNew(boolean isNew) {
+        this.isNew = isNew;
+    }
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public SpaceshipType getSpaceshipType() {
+        return spaceshipType;
     }
 }
