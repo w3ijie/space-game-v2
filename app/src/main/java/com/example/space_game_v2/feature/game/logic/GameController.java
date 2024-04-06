@@ -42,22 +42,17 @@ public class GameController {
 
     private GameController() {
         spaceshipQueue = new Queue(MAX_QUEUE_SIZE);
-        resetSpaceshipQueue();
+        points = 0;
+        hearts = 3;
     }
 
     public void setExplosionEventListener(ExplosionEventListener listener) {
         this.explosionEventListener = listener;
     }
 
-    public void resetSpaceshipQueue() {
-        points = 0;
-        hearts = 3;
-    }
-
     public void addSpaceship(Spaceship spaceship) {
         spaceshipQueue.add(spaceship);
     }
-    public void inspectSpaceship() {}
 
     public boolean checkFull() {
         return spaceshipQueue.size() >= MAX_QUEUE_SIZE;
@@ -115,16 +110,8 @@ public class GameController {
         return isGameActive;
     }
 
-    public void stopGame() {
-        // Implement logic to stop the game, e.g., stop threads, save state, etc.
-        isGamePaused = true;
-        stopShipProduction();
-    }
-
-
     public void startGame() {
         isGamePaused = false;
-        isGameActive = true;
         startShipProduction();
     }
 
@@ -139,6 +126,11 @@ public class GameController {
         spaceshipQueue.clear();
         points = 0;
         hearts = 3;
+    }
+
+    public void pauseGame() {
+        isGamePaused = true;
+        stopShipProduction();
     }
 
     public void startShipProduction() {

@@ -1,6 +1,7 @@
 package com.example.space_game_v2.feature.game;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowInsets;
@@ -59,41 +60,39 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
             @Override
             public void handleOnBackPressed() {
                 // Handle the back button event
-                GameController.getInstance().stopGame();
+                GameController.getInstance().pauseGame();
                 finish();
             }
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
 
-        GameController.getInstance().startGame();
+        if (GameController.getInstance().isGameActive() && GameController.getInstance().isGamePaused()) {
+            GameController.getInstance().resumeGame();
+            updateAllUI();
+        } else {
+            GameController.getInstance().startGame();
+        }
     }
 
     private void approveSpaceship() {
         GameController.getInstance().approveNearestSpaceship();
-        runOnUiThread(() -> {
-            updatePointsDisplay();
-            updateHeartsDisplay();
-        });
-
+        runOnUiThread(this::updateAllUI);
     }
 
     private void disapproveSpaceship() {
         GameController.getInstance().disapproveNearestSpaceship();
-        runOnUiThread(this::updateHeartsDisplay);
+        runOnUiThread(this::updateAllUI);
     }
+
     @Override
     public void onSpaceshipReachedBase(Spaceship spaceship) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastLifeDecrementTime >= LIFE_DECREMENT_COOLDOWN) {
             runOnUiThread(() -> {
                 lastLifeDecrementTime = currentTime;
-                decrementLives();
+                updateAllUI();
             });
         }
-    }
-
-    private void decrementLives() {
-        updateHeartsDisplay();
     }
 
     private void updateHeartsDisplay() {
@@ -147,7 +146,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         super.onPause();
         // Stop music when activity is not visible
         stopService(new Intent(this, BackgroundMusicService.class));
-        GameController.getInstance().stopGame();
+        GameController.getInstance().pauseGame();
     }
 
     @Override
@@ -158,6 +157,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
         if (!GameController.getInstance().isGameActive()) {
             GameController.getInstance().resumeGame();
+            updateAllUI();
         }
 
         Window window = getWindow();
@@ -174,8 +174,17 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     protected void onStop() {
         super.onStop();
         stopService(new Intent(this, BackgroundMusicService.class));
-        GameController.getInstance().stopGame();
+
+        if (GameController.getInstance().isGameActive()) {
+            GameController.getInstance().pauseGame();
+        }
     }
 
+    private void updateAllUI() {
+        runOnUiThread(() -> {
+            updateHeartsDisplay();
+            updatePointsDisplay();
+        });
+    }
 
 }
