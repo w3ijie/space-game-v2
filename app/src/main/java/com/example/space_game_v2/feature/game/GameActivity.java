@@ -27,6 +27,8 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     private TextView tvEconomy;
     private Button buttonApprove, buttonDisapprove;
     private BackgroundView backgroundView;
+    private long lastLifeDecrementTime = 0;
+    private static final long LIFE_DECREMENT_COOLDOWN = 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,12 +84,13 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     }
     @Override
     public void onSpaceshipReachedBase(Spaceship spaceship) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastLifeDecrementTime >= LIFE_DECREMENT_COOLDOWN) {
+            runOnUiThread(() -> {
                 decrementLives();
-            }
-        });
+                lastLifeDecrementTime = currentTime;
+            });
+        }
     }
 
     private void decrementLives() {

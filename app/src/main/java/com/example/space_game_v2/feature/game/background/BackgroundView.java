@@ -224,21 +224,17 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
-
     public void setSpaceshipEventListener(SpaceshipEventListener listener) {
         this.spaceshipEventListener = listener;
     }
 
     @Override
     public void onExplosionTrigger(Spaceship spaceship) {
-//        float explosionX = spaceship.getX() + bombShipBitmap.getWidth() / 2f;
-//        float explosionY = spaceship.getY() + bombShipBitmap.getHeight() / 2f;
-
-
         float explosionX = spaceship.getX();
         float explosionY = spaceship.getY();
         explosions.add(new Explosion(getContext(), explosionX, explosionY));
     }
+
     private void drawExplosions(Canvas canvas) {
         Iterator<Explosion> explosionIterator = explosions.iterator();
         while (explosionIterator.hasNext()) {
@@ -252,4 +248,5 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
             }
         }
     }
+
 }
