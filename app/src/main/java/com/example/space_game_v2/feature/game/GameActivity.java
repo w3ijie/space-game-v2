@@ -11,7 +11,9 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.space_game_v2.R;
 import com.example.space_game_v2.feature.game.audio.BackgroundMusicService;
+import com.example.space_game_v2.feature.game.background.BackgroundView;
 import com.example.space_game_v2.feature.game.elements.SpaceshipEventListener;
+import com.example.space_game_v2.feature.game.logic.GameController;
 import com.example.space_game_v2.feature.main.MainActivity;
 import com.example.space_game_v2.feature.game.elements.Spaceship;
 
@@ -21,7 +23,7 @@ import androidx.appcompat.app.AlertDialog;
 public class GameActivity extends AppCompatActivity implements SpaceshipEventListener {
     private ImageView heart1, heart2, heart3;
     private TextView tvEconomy;
-    private ScrollingBackgroundView scrollingBackgroundView;
+    private BackgroundView backgroundView;
     private Button buttonApprove, buttonDisapprove;
     private int lives = 3; // Start with 3 lives
 
@@ -39,22 +41,22 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         heart1 = findViewById(R.id.heart1);
         heart2 = findViewById(R.id.heart2);
         heart3 = findViewById(R.id.heart3);
-        scrollingBackgroundView = findViewById(R.id.scrolling_background_view);
+        backgroundView = findViewById(R.id.background_view);
         tvEconomy = findViewById(R.id.tvEconomy);
         buttonApprove = findViewById(R.id.button_approve);
         buttonDisapprove = findViewById(R.id.button_disapprove);
 
         // Ensure ScrollingBackgroundView is ready before setting the listener
-        if (scrollingBackgroundView != null) {
-            scrollingBackgroundView.setSpaceshipEventListener((SpaceshipEventListener) this);
-        }
+//        if (backgroundView != null) {
+//            backgroundView.setSpaceshipEventListener((SpaceshipEventListener) this);
+//        }
 
         buttonApprove.setOnClickListener(v -> approveSpaceship());
         buttonDisapprove.setOnClickListener(v -> disapproveSpaceship());
     }
 
     private void approveSpaceship() {
-        boolean approvedCorrectly = scrollingBackgroundView.approveNearestSpaceship();
+        boolean approvedCorrectly = GameController.getInstance().approveNearestSpaceship();
         if (!approvedCorrectly) {
             decrementLives(); // Decrement lives if a bomb ship is incorrectly approved
         }
@@ -62,7 +64,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     }
 
     private void disapproveSpaceship() {
-        boolean disapprovedCorrectly = scrollingBackgroundView.disapproveNearestSpaceship();
+        boolean disapprovedCorrectly = GameController.getInstance().disapproveNearestSpaceship();
         if (!disapprovedCorrectly) {
             decrementLives(); // Decrement lives if a money ship is incorrectly disapproved
         }
@@ -95,7 +97,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     private void endGame() {
         // Ensure this is called on the main thread as it will update the UI
         runOnUiThread(() -> {
-            scrollingBackgroundView.stopGame();
+//            scrollingBackgroundView.stopGame();
             buttonApprove.setEnabled(false);
             buttonDisapprove.setEnabled(false);
 
@@ -119,7 +121,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     }
 
     private void updateEconomyDisplay() {
-        tvEconomy.setText("$" + scrollingBackgroundView.getEconomy());
+//        tvEconomy.setText("$" + backgroundView.getEconomy());
     }
 
     private void returnToMainMenu() {
@@ -133,7 +135,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         super.onPause();
         // Stop music when activity is not visible
         stopService(new Intent(this, BackgroundMusicService.class));
-        scrollingBackgroundView.pause();
+//        backgroundView.pause();
     }
 
     @Override
@@ -141,7 +143,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         super.onResume();
         // Resume music when activity is back
         startService(new Intent(this, BackgroundMusicService.class));
-        scrollingBackgroundView.resume();
+//        backgroundView.resume();
 
         Window window = getWindow();
         if (window != null) {

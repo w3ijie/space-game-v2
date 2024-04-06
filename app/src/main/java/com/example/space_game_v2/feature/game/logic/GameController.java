@@ -1,8 +1,11 @@
 package com.example.space_game_v2.feature.game.logic;
 
-import android.media.MediaPlayer;
 
 import com.example.space_game_v2.feature.game.elements.Spaceship;
+import com.example.space_game_v2.feature.game.elements.ExplosionEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Implement game logic here, handle spaceship management, economy, user interactions.
@@ -10,14 +13,36 @@ import com.example.space_game_v2.feature.game.elements.Spaceship;
  * Interact with other views such as spaceship, explosions etc
  */
 public class GameController {
+    // implement as singleton
+    private static GameController instance;
+
     private Queue spaceshipQueue;
-    private MediaPlayer mediaPlayer;
+    private int points;
+    private int hearts;
 
-    private int points = 0;
-    private int hearts = 3;
+    private final int POINTS_PER_SPACESHIP = 100;
+    private ExplosionEventListener explosionEventListener;
 
-    public GameController() {
+
+    public static synchronized GameController getInstance() {
+        if (instance == null) {
+            instance = new GameController();
+        }
+        return instance;
+    }
+
+    private GameController() {
         spaceshipQueue = new Queue(5);
+        resetSpaceshipQueue();
+    }
+
+    public void setExplosionEventListener(ExplosionEventListener listener) {
+        this.explosionEventListener = listener;
+    }
+
+    public void resetSpaceshipQueue() {
+        points = 0;
+        hearts = 3;
     }
 
     public void addSpaceship(Spaceship spaceship) {
@@ -27,15 +52,53 @@ public class GameController {
 
     public boolean checkFull() {return true;}
 
-    public int getPoints() {return points;}
+    public boolean approveNearestSpaceship() {
+        if (!spaceshipQueue.isEmpty()) {
+            // queue removes the first in
+            Spaceship current = spaceshipQueue.remove();
 
-    public int getHearts() {return hearts;}
-
-    public void updateAndRender() {
-        // Update game state
-        // Example: Move spaceships, check for collisions, etc.
-
-        // Render updated state
-//        backgroundView.invalidate(); // Assuming the background view handles its own rendering based on the game state
+            if ("bomb".equals(current.type)) {
+                return false;
+            } else if ("money".equals(current.type)) {
+                points += POINTS_PER_SPACESHIP;
+                return true;
+            }
+        }
+        return true;
     }
+    public boolean disapproveNearestSpaceship() {
+        if (!spaceshipQueue.isEmpty()) {
+            Spaceship nearestSpaceship = spaceshipQueue.remove();
+
+            if ("money".equals(nearestSpaceship.type)) {
+                return false;
+            } else if ("bomb".equals(nearestSpaceship.type)) {
+//                float explosionX = nearestSpaceship.x + bombShipBitmap.getWidth() / 2f;
+//                float explosionY = nearestSpaceship.y + bombShipBitmap.getHeight() / 2f;
+                if (explosionEventListener != null) {
+                    explosionEventListener.onExplosionTrigger(nearestSpaceship);
+                }
+                return true;
+            }
+        }
+        return true;
+    }
+
+    public synchronized List<Spaceship> getCurrentSpaceships() {
+        return new ArrayList<>(spaceshipQueue.getAll());
+    }
+
+    public Spaceship renderSpaceship(int screenWidth, int shipWidth) {
+
+        if (!spaceshipQueue.isEmpty()) {
+            Spaceship ship = spaceshipQueue.remove();
+            ship.setX((float) (screenWidth - shipWidth) / 2);
+            ship.setY(-shipWidth);
+            return ship;
+        }
+        return null;
+    }
+
+
+
 }

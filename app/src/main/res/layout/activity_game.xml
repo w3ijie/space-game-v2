@@ -4,8 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.example.space_game_v2.feature.game.ScrollingBackgroundView
-        android:id="@+id/scrolling_background_view"
+<!--    <com.example.space_game_v2.feature.game.background.ScrollingBackgroundView-->
+<!--        android:id="@+id/scrolling_background_view"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent" />-->
+
+    <com.example.space_game_v2.feature.game.background.BackgroundView
+        android:id="@+id/background_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

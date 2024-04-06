@@ -4,6 +4,9 @@ import android.util.Log;
 
 import com.example.space_game_v2.feature.game.elements.Spaceship;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Queue {
     private volatile Spaceship[] queue;
     private volatile int front = 0;
@@ -68,5 +71,16 @@ public class Queue {
     // method to get max size of the queue
     synchronized int maxSize() {
         return queue.length;
+    }
+
+
+    synchronized List<Spaceship> getAll() {
+        List<Spaceship> list = new ArrayList<>();
+        int index = front;
+        for (int i = 0; i < itemCount; i++) {
+            list.add(queue[index]);
+            index = (index + 1) % queue.length;
+        }
+        return list;
     }
 }
