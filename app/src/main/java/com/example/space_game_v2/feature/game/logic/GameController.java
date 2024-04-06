@@ -82,15 +82,17 @@ public class GameController {
             if ("money".equals(nearestSpaceship.type)) {
                 return false;
             } else if ("bomb".equals(nearestSpaceship.type)) {
-//                float explosionX = nearestSpaceship.x + bombShipBitmap.getWidth() / 2f;
-//                float explosionY = nearestSpaceship.y + bombShipBitmap.getHeight() / 2f;
-//                if (explosionEventListener != null) {
-//                    explosionEventListener.onExplosionTrigger(nearestSpaceship);
-//                }
+                triggerExplosion(nearestSpaceship);
                 return true;
             }
         }
         return true;
+    }
+
+    public void triggerExplosion(Spaceship spaceship) {
+        if (explosionEventListener != null) {
+            explosionEventListener.onExplosionTrigger(spaceship);
+        }
     }
 
     public synchronized List<Spaceship> getCurrentSpaceships() {
@@ -158,6 +160,5 @@ public class GameController {
     public int getHearts() {
         return hearts;
     }
-
 
 }

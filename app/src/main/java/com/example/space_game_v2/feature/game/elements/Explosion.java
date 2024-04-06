@@ -30,8 +30,8 @@ public class Explosion {
         this.currentFrame = 0;
         this.lastFrameChangeTime = System.currentTimeMillis();
         this.isActive = true;
-        this.x = x - frameWidth / 2f; // Center the explosion
-        this.y = y - frameHeight / 2f; // Center the explosion
+        this.x = x;
+        this.y = y;
         this.frameDuration = 10;
     }
 

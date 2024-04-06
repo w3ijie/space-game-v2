@@ -26,7 +26,6 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     private ImageView heart1, heart2, heart3;
     private TextView tvEconomy;
     private Button buttonApprove, buttonDisapprove;
-    private int lives = 3; // Start with 3 lives
     private BackgroundView backgroundView;
 
     @Override
@@ -49,6 +48,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
         backgroundView = findViewById(R.id.background_view);
         backgroundView.setSpaceshipEventListener(this);
+        GameController.getInstance().setExplosionEventListener(backgroundView);
 
         buttonApprove.setOnClickListener(v -> approveSpaceship());
         buttonDisapprove.setOnClickListener(v -> disapproveSpaceship());

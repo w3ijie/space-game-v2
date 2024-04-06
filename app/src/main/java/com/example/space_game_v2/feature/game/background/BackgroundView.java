@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * - Uses Threads to draw to offload from the main UI
  * - Listens to GameController and render the state into UI
  */
-public class BackgroundView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
+public class BackgroundView extends SurfaceView implements SurfaceHolder.Callback, Runnable, ExplosionEventListener {
 
     // bitmaps - render all the relevant assets
     private Bitmap backgroundBitmap;
@@ -56,6 +56,8 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
 
     private boolean isRunning = true;
+    private List<Explosion> explosions = new ArrayList<>();
+
 
     private ScheduledExecutorService scheduler;
     private Thread thread;
@@ -88,10 +90,6 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         scheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
-
-    public void setSpaceshipEventListener(SpaceshipEventListener listener) {
-        this.spaceshipEventListener = listener;
-    }
 
 
     @Override
@@ -147,6 +145,8 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                     float spaceStationY = spaceStation.getYOfSpaceStation();
                     drawSpaceships(canvas, spaceStationY);
 
+                    drawExplosions(canvas);
+
                     holder.unlockCanvasAndPost(canvas);
                 }
             }
@@ -170,24 +170,20 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         List<Spaceship> spaceships = GameController.getInstance().getCurrentSpaceships();
         for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext(); ) {
             Spaceship spaceship = iterator.next();
+            Bitmap shipBitmap = scaledMoneyShipBitmap;
+
+            if ("bomb".equals(spaceship.type)) {
+                shipBitmap = bombShipBitmap;
+            }
 
             spaceship.setY(spaceship.getY() + spaceship.getVelocity());
-            float shipX = 0;
+            spaceship.setX((canvas.getWidth() - shipBitmap.getWidth()) / 2f);
+
+            float shipX = spaceship.getX();
             float shipY = spaceship.getY();
 
-            Bitmap shipBitmap = null;
+            canvas.drawBitmap(shipBitmap, shipX, shipY, null);
 
-            if ("money".equals(spaceship.type)) {
-                shipBitmap = scaledMoneyShipBitmap;
-                shipX = (canvas.getWidth() - shipBitmap.getWidth()) / 2; // Center the money ship
-            } else if ("bomb".equals(spaceship.type)) {
-                shipBitmap = bombShipBitmap;
-                shipX = (canvas.getWidth() - shipBitmap.getWidth()) / 2f;
-            }
-
-            if (shipBitmap != null) {
-                canvas.drawBitmap(shipBitmap, shipX, shipY, null);
-            }
             if (shipY + shipBitmap.getHeight() >= spaceStationY) {
                 iterator.remove(); // Remove spaceship from the list
                 if (spaceshipEventListener != null) {
@@ -229,4 +225,31 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
 
+    public void setSpaceshipEventListener(SpaceshipEventListener listener) {
+        this.spaceshipEventListener = listener;
+    }
+
+    @Override
+    public void onExplosionTrigger(Spaceship spaceship) {
+//        float explosionX = spaceship.getX() + bombShipBitmap.getWidth() / 2f;
+//        float explosionY = spaceship.getY() + bombShipBitmap.getHeight() / 2f;
+
+
+        float explosionX = spaceship.getX();
+        float explosionY = spaceship.getY();
+        explosions.add(new Explosion(getContext(), explosionX, explosionY));
+    }
+    private void drawExplosions(Canvas canvas) {
+        Iterator<Explosion> explosionIterator = explosions.iterator();
+        while (explosionIterator.hasNext()) {
+            Explosion explosion = explosionIterator.next();
+            explosion.update();
+
+            if (!explosion.getStatus()) {
+                explosionIterator.remove();
+            } else {
+                explosion.draw(canvas);
+            }
+        }
+    }
 }
