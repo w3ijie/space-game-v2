@@ -4,12 +4,10 @@ import java.util.Random;
 
 public class Spaceship {
     private float x, y;
-    private float velocity = 1;
     public String type;
 
-    public Spaceship(float velocity) {
+    public Spaceship() {
         this.type = new Random().nextBoolean() ? "money" : "bomb";
-        this.velocity = velocity;
     }
 
     public float getX() {
@@ -27,9 +25,4 @@ public class Spaceship {
     public void setY(float y) {
         this.y = y;
     }
-
-    public float getVelocity() {
-        return velocity;
-    }
-
 }

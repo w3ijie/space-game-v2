@@ -9,7 +9,6 @@ import com.example.space_game_v2.feature.game.elements.Spaceship;
  */
 public class ShipProducer extends Thread {
     private GameController game;
-    private float speedOverTime = 1;
 
     public ShipProducer(GameController game) {
         this.game = game;
@@ -20,9 +19,7 @@ public class ShipProducer extends Thread {
         // loop to add ships to the queue every 2 seconds until the queue is full
         while (game.isGameActive() && !game.isGamePaused()) {
             if (!game.checkFull()) {
-                speedOverTime += incrementSpeedOverTime();
-
-                game.addSpaceship(new Spaceship(speedOverTime));
+                game.addSpaceship(new Spaceship());
                 Log.i("Ship Producer", "Insert new spaceship");
             }
 
@@ -38,9 +35,5 @@ public class ShipProducer extends Thread {
 
         // If the queue is full, print a message and end the game
         Log.i("Ship Producer", "ship producer thread is done");
-    }
-
-    private float incrementSpeedOverTime() {
-        return 0.7f;
     }
 }
