@@ -105,8 +105,7 @@ public class GameController {
     public void nearestSpaceshipTouchedBase() {
 
         if (!spaceshipQueue.isEmpty()) {
-            Spaceship touchedBaseShip = spaceshipQueue.remove();
-
+            spaceshipQueue.remove();
             Log.d("GameController", "Spaceship has crashed into the base.");
             decrementHeart();
         }
@@ -161,7 +160,7 @@ public class GameController {
 
     public void stopShipProduction() {
         if (shipProducer != null) {
-            shipProducer.interrupt(); // Safely stop the thread
+            shipProducer.interrupt();
         }
     }
 
@@ -187,7 +186,7 @@ public class GameController {
 
     public void stopAlienProduction() {
         if (alienProducer != null) {
-            alienProducer.interrupt(); // Safely stop the thread
+            alienProducer.interrupt();
         }
     }
 

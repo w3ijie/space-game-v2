@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.example.space_game_v2.feature.game.elements.Spaceship;
 
-/** ShipProducer
+/** AlienProducer
  * - Sole focus is to produce spaceships
  */
 public class AlienProducer extends Thread {
