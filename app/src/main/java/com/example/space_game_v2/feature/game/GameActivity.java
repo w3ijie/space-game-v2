@@ -1,5 +1,6 @@
 package com.example.space_game_v2.feature.game;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -24,6 +25,7 @@ import com.example.space_game_v2.feature.leaderboard.LeaderboardEntry;
 import com.example.space_game_v2.feature.leaderboard.LeaderboardInsertCallback;
 import com.example.space_game_v2.feature.main.MainActivity;
 import com.example.space_game_v2.feature.game.elements.Spaceship;
+import com.google.gson.Gson;
 
 import android.content.Intent;
 import androidx.appcompat.app.AlertDialog;
@@ -61,7 +63,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         buttonApprove.setOnClickListener(v -> approveSpaceship());
         buttonDisapprove.setOnClickListener(v -> disapproveSpaceship());
 
-        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+        OnBackPressedCallback callback = new OnBackPressedCallback(true ) {
             @Override
             public void handleOnBackPressed() {
                 // Handle the back button event
@@ -71,10 +73,19 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
 
+//        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+//        if (prefs.getBoolean("stateExist", false)) {
+//            loadGameState();
+//        }
+//        updateHeartsDisplay();
+//        updatePointsDisplay();
+      
+        // if there is a current game running but was on pause, we will resume it and render the UI of its state
         if (GameController.getInstance().isGameActive() && GameController.getInstance().isGamePaused()) {
             GameController.getInstance().resumeGame();
             updateAllUI();
         } else {
+            // start the game from afresh
             GameController.getInstance().startGame();
         }
     }
@@ -120,6 +131,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
     // Update the gameOver method to call endGame
     private void gameOver() {
+//        clearSharedPreferences();
         // Ensure this is called on the main thread as it will update the UI
         runOnUiThread(() -> {
             int finalScore = GameController.getInstance().getPoints();
@@ -131,37 +143,44 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
             // Stop the music service
             stopService(new Intent(GameActivity.this, BackgroundMusicService.class));
 
-            // Use an EditText as the input field for the player's name
-            final EditText playerNameInput = new EditText(this);
-            playerNameInput.setHint("Enter your name");
-
             // Show a dialog instead of a toast
-            AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity.this);
-            builder.setTitle("Game Over")
-                    .setMessage("You've scored $" + finalScore + "\n\nEnter your name for the leaderboard:")
-                    .setView(playerNameInput) // Add the EditText to the dialog
-                    .setPositiveButton("Submit", (dialog, which) -> {
-                        String playerName = playerNameInput.getText().toString();
-
-                        LeaderboardController.insertLeaderboardEntry(new LeaderboardEntry(playerName, finalScore), new LeaderboardInsertCallback() {
-                            @Override
-                            public void onSuccess(Boolean isInserted) {
-                                runOnUiThread(() -> Toast.makeText(GameActivity.this, "Submitted!", Toast.LENGTH_SHORT).show());
-                            }
-
-                            @Override
-                            public void onError(String errorMessage) {
-                                runOnUiThread(() -> Toast.makeText(GameActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show());
-                            }
-                        });
-                        returnToMainMenu();
-
-                    })
-                    .setNegativeButton("Cancel", (dialog, which) -> dialog.cancel())
-                    .setCancelable(false);
+            AlertDialog.Builder builder = showEndingDialog(finalScore);
             builder.show();
         });
+    }
 
+    private AlertDialog.Builder showEndingDialog(int finalScore) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity.this);
+
+        // input field for the player's name
+        final EditText playerNameInput = new EditText(this);
+        playerNameInput.setHint("Enter your name");
+
+        builder.setTitle("Game Over")
+                .setMessage("You've scored $" + finalScore + "\n\nEnter your name for the leaderboard:")
+                .setView(playerNameInput) // Add the EditText to the dialog
+                .setPositiveButton("Submit", (dialog, which) -> {
+                    String playerName = playerNameInput.getText().toString();
+
+                    LeaderboardController.insertLeaderboardEntry(new LeaderboardEntry(playerName, finalScore), new LeaderboardInsertCallback() {
+                        @Override
+                        public void onSuccess(Boolean isInserted) {
+                            runOnUiThread(() -> Toast.makeText(GameActivity.this, "Submitted!", Toast.LENGTH_SHORT).show());
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            runOnUiThread(() -> Toast.makeText(GameActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show());
+                        }
+                    });
+                    returnToMainMenu();
+
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    returnToMainMenu();
+                })
+                .setCancelable(false);
+        return builder;
     }
 
     private void returnToMainMenu() {
@@ -173,21 +192,26 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     @Override
     protected void onPause() {
         super.onPause();
+        backgroundView.pauseDrawing();
+        GameController.getInstance().pauseGame();
         // Stop music when activity is not visible
         stopService(new Intent(this, BackgroundMusicService.class));
-        GameController.getInstance().pauseGame();
+
+//        saveGameState();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        backgroundView.resumeDrawing();
+        if (GameController.getInstance().isGameActive() && GameController.getInstance().isGamePaused()) {
+            GameController.getInstance().resumeGame();
+        }
+
         // Resume music when activity is back
         startService(new Intent(this, BackgroundMusicService.class));
 
-        if (!GameController.getInstance().isGameActive()) {
-            GameController.getInstance().resumeGame();
-            updateAllUI();
-        }
+        updateAllUI();
 
         Window window = getWindow();
         if (window != null) {
@@ -216,4 +240,35 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         });
     }
 
+    private void clearSharedPreferences() {
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        editor.putBoolean("stateExist", false);
+        editor.clear();
+        editor.apply();
+    }
+
+    public void saveGameState() {
+        if (GameController.getInstance().getHearts() > 0) {
+            SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+
+            editor.putBoolean("stateExist", true);
+            editor.putInt("points", GameController.getInstance().getPoints());
+            editor.putFloat("spaceshipSpeed", GameController.getInstance().getSpaceshipSpeed());
+            editor.putInt("hearts", GameController.getInstance().getHearts());
+
+            editor.apply();
+        }
+    }
+
+    public void loadGameState() {
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        if(prefs.getBoolean("stateExist", false)) {
+            GameController.getInstance().setPoints(prefs.getInt("points", 0));
+            GameController.getInstance().setSpaceshipSpeed(prefs.getInt("spaceshipSpeed", 1)); // Default to 1 if not found
+            GameController.getInstance().setHearts(prefs.getInt("hearts", 3));
+        }
+    }
 }

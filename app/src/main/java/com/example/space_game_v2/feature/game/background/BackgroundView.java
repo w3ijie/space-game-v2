@@ -4,15 +4,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.drawable.AnimationDrawable;
+import android.media.MediaPlayer;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import com.example.space_game_v2.R;
 import com.example.space_game_v2.feature.game.elements.Explosion;
@@ -26,10 +24,8 @@ import com.example.space_game_v2.feature.game.utils.GameEffects;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * BackgroundView
@@ -43,7 +39,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     private Bitmap backgroundBitmap;
     private Bitmap alienShipBitmap;
     private Bitmap scaledMoneyShipBitmap;
-    private Bitmap bombShipBitmap, moneyShipBitmap;
+    private Bitmap bombShipBitmap;
 
 
 
@@ -53,15 +49,12 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
     private float backgroundY = 0;
     private final int scrollSpeed = 3;
-    private long lastSpawnTime = System.currentTimeMillis();
-
 
 
     private boolean isRunning = true;
     private List<Explosion> explosions = new ArrayList<>();
 
 
-    private ScheduledExecutorService scheduler;
     private Thread thread;
 
 
@@ -88,8 +81,6 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         loadMoneyShipBitmap();
         loadBombShipBitmap();
         loadAlienShipBitmap();
-
-        scheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
 
@@ -99,8 +90,11 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         // draw the station once bg has been created because it needs to know
         spaceStation = new SpaceStation(getContext(), getWidth(), getHeight());
 
-        thread = new Thread(this);
-        thread.start();
+        if (thread == null || !thread.isAlive()) {
+            thread = new Thread(this);
+            isRunning = true;
+            thread.start();
+        }
     }
 
     @Override
@@ -110,10 +104,6 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-
-        if (scheduler != null && !scheduler.isShutdown()) {
-            scheduler.shutdownNow();
-        }
         boolean retry = true;
         isRunning = false;
         while (retry) {
@@ -121,6 +111,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                 thread.join();
                 retry = false;
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
 
@@ -129,9 +120,9 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public void run() {
 
-        final int FPS = 60;
-        final long frameTime = 1000 / FPS;
-        long startTime, timeMillis, waitTime;
+//        final int FPS = 60;
+//        final long frameTime = 1000 / FPS;
+//        long startTime, timeMillis, waitTime;
 
         SurfaceHolder holder = getHolder();
 
@@ -139,12 +130,12 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
             if (!holder.getSurface().isValid()) {
                 continue;
             }
-            startTime = System.nanoTime();
+//            startTime = System.nanoTime();
 
             Canvas canvas = holder.lockCanvas();
             if (canvas != null) {
                 synchronized (holder) {
-                    canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
+                    // canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
                     updateAndDrawBackground(canvas);
                     if (spaceStation != null) {
                         spaceStation.draw(canvas);
@@ -162,23 +153,47 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                 }
             }
 
-            timeMillis = (System.nanoTime() - startTime) / 1000000;
-            waitTime = frameTime - timeMillis;
+//            timeMillis = (System.nanoTime() - startTime) / 1000000;
+//            waitTime = frameTime - timeMillis;
+//
+//            try {
+//                if (waitTime > 0) {
+//                    Thread.sleep(waitTime);
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
+        }
+    }
+
+    // for game activity to call
+    public void pauseDrawing() {
+        isRunning = false;
+        boolean retry = true;
+        while (retry) {
             try {
-                if (waitTime > 0) {
-                    Thread.sleep(waitTime);
+                if (thread != null) {
+                    thread.join();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+                retry = false;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
+        }
+    }
 
+    // for the game activity to call
+    public void resumeDrawing() {
+        if (!isRunning && getHolder().getSurface().isValid()) {
+            isRunning = true;
+            thread = new Thread(this);
+            thread.start();
         }
     }
 
 
     private void updateAndDrawBackground(Canvas canvas) {
-        // Update the background position for the scrolling effect
         backgroundY += scrollSpeed;
         if (backgroundY >= backgroundBitmap.getHeight()) {
             backgroundY = 0;
@@ -191,7 +206,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
     private void drawSpaceships(Canvas canvas, float spaceStationY) {
         List<Spaceship> spaceships = GameController.getInstance().getCurrentSpaceships();
-        int spaceshipSpeed = GameController.getInstance().getSpaceshipSpeed();
+        float spaceshipSpeed = GameController.getInstance().getSpaceshipSpeed();
 
         for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext(); ) {
             Spaceship spaceship = iterator.next();
@@ -223,11 +238,9 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     private void loadBombShipBitmap() {
-        // Load, scale, and set the bomb ship bitmap
         Bitmap originalBombShipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bombship);
-        int bombShipScaleFactor = 2; // Adjust this factor to scale the bomb ship size
-        bombShipBitmap = Bitmap.createScaledBitmap(originalBombShipBitmap, originalBombShipBitmap.getWidth() / bombShipScaleFactor, originalBombShipBitmap.getHeight() / bombShipScaleFactor, false);
-        originalBombShipBitmap.recycle(); // Recycle the original bitmap as it's no longer needed
+        bombShipBitmap = Bitmap.createScaledBitmap(originalBombShipBitmap, originalBombShipBitmap.getWidth() / 2, originalBombShipBitmap.getHeight() / 2, false);
+        originalBombShipBitmap.recycle();
     }
 
     private void loadAlienShipBitmap() {
@@ -235,14 +248,10 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     private Bitmap getBitmapForSpaceship(Spaceship spaceship) {
-        switch (spaceship.getSpaceshipType()) {
-            case MONEY:
-                return scaledMoneyShipBitmap;
-            case BOMB:
-                return bombShipBitmap;
-            default:
-                return null;
+        if (Objects.requireNonNull(spaceship.getSpaceshipType()) == Spaceship.SpaceshipType.BOMB) {
+            return bombShipBitmap;
         }
+        return scaledMoneyShipBitmap;
     }
 
     public void setSpaceshipEventListener(SpaceshipEventListener listener) {
@@ -283,9 +292,10 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                 }
                 canvas.drawBitmap(alienShipBitmap, alienSpaceship.getX(), alienSpaceship.getY(), null);
 
-                // Check if the spaceship is new and trigger vibration
+                // trigger vibration if new
                 if (alienSpaceship.isNew()) {
                     GameEffects.vibrate(getContext(), 500);
+                    playEvilLaughSound();
                     alienSpaceship.setIsNew(false);
                 }
             }
@@ -293,46 +303,44 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
 
-    // Override the onTouchEvent method here
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        // Check if the event is a touch down action
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            // Get the x and y coordinates of the touch event
             float touchX = event.getX();
             float touchY = event.getY();
 
-            // Synchronize access to alienSpaceships to ensure thread safety
             synchronized (GameController.getInstance().getAliens()) {
-                // Create an iterator to safely remove items from the list while iterating
                 Iterator<Spaceship> iterator = GameController.getInstance().getAliens().iterator();
 
                 while (iterator.hasNext()) {
                     Spaceship spaceship = iterator.next();
 
-                    // Calculate the bounding box of the current spaceship
+                    // bounding box of the current spaceship
                     float left = spaceship.getX();
                     float top = spaceship.getY();
                     float right = left + alienShipBitmap.getWidth();
                     float bottom = top + alienShipBitmap.getHeight();
 
-                    // Check if the touch coordinates are within the bounding box of the spaceship
+                    // touch coordinates are within the bounding box of the spaceship
                     if (touchX >= left && touchX <= right && touchY >= top && touchY <= bottom) {
-                        // Touch is within the spaceship bounds, so remove the spaceship
+                        // within the spaceship bounds, so remove the spaceship
                         iterator.remove();
                         break;
                     }
                 }
             }
 
-            // Indicate that the touch event was handled
             return true;
         }
 
-        // Pass the event up to the parent class if it's not a touch down action
         return super.onTouchEvent(event);
     }
 
-
+    private void playEvilLaughSound() {
+        MediaPlayer mediaPlayer = MediaPlayer.create(getContext(), R.raw.evil_laugh);
+        mediaPlayer.setVolume(230, 230);
+        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+        mediaPlayer.start();
+    }
 
 }
