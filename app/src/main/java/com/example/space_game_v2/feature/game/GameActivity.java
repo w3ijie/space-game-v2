@@ -166,7 +166,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
                         @Override
                         public void onError(String errorMessage) {
-                            runOnUiThread(() -> Toast.makeText(GameActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show());
+                            runOnUiThread(() -> Toast.makeText(GameActivity.this, "Error: No API credentials", Toast.LENGTH_SHORT).show());
                         }
                     });
                     returnToMainMenu();
