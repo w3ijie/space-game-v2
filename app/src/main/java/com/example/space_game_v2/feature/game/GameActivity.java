@@ -71,10 +71,12 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
 
+        // if there is a current game running but was on pause, we will resume it and render the UI of its state
         if (GameController.getInstance().isGameActive() && GameController.getInstance().isGamePaused()) {
             GameController.getInstance().resumeGame();
             updateAllUI();
         } else {
+            // start the game from afresh
             GameController.getInstance().startGame();
         }
     }
@@ -131,37 +133,44 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
             // Stop the music service
             stopService(new Intent(GameActivity.this, BackgroundMusicService.class));
 
-            // Use an EditText as the input field for the player's name
-            final EditText playerNameInput = new EditText(this);
-            playerNameInput.setHint("Enter your name");
-
             // Show a dialog instead of a toast
-            AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity.this);
-            builder.setTitle("Game Over")
-                    .setMessage("You've scored $" + finalScore + "\n\nEnter your name for the leaderboard:")
-                    .setView(playerNameInput) // Add the EditText to the dialog
-                    .setPositiveButton("Submit", (dialog, which) -> {
-                        String playerName = playerNameInput.getText().toString();
-
-                        LeaderboardController.insertLeaderboardEntry(new LeaderboardEntry(playerName, finalScore), new LeaderboardInsertCallback() {
-                            @Override
-                            public void onSuccess(Boolean isInserted) {
-                                runOnUiThread(() -> Toast.makeText(GameActivity.this, "Submitted!", Toast.LENGTH_SHORT).show());
-                            }
-
-                            @Override
-                            public void onError(String errorMessage) {
-                                runOnUiThread(() -> Toast.makeText(GameActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show());
-                            }
-                        });
-                        returnToMainMenu();
-
-                    })
-                    .setNegativeButton("Cancel", (dialog, which) -> dialog.cancel())
-                    .setCancelable(false);
+            AlertDialog.Builder builder = showEndingDialog(finalScore);
             builder.show();
         });
+    }
 
+    private AlertDialog.Builder showEndingDialog(int finalScore) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity.this);
+
+        // input field for the player's name
+        final EditText playerNameInput = new EditText(this);
+        playerNameInput.setHint("Enter your name");
+
+        builder.setTitle("Game Over")
+                .setMessage("You've scored $" + finalScore + "\n\nEnter your name for the leaderboard:")
+                .setView(playerNameInput) // Add the EditText to the dialog
+                .setPositiveButton("Submit", (dialog, which) -> {
+                    String playerName = playerNameInput.getText().toString();
+
+                    LeaderboardController.insertLeaderboardEntry(new LeaderboardEntry(playerName, finalScore), new LeaderboardInsertCallback() {
+                        @Override
+                        public void onSuccess(Boolean isInserted) {
+                            runOnUiThread(() -> Toast.makeText(GameActivity.this, "Submitted!", Toast.LENGTH_SHORT).show());
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            runOnUiThread(() -> Toast.makeText(GameActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show());
+                        }
+                    });
+                    returnToMainMenu();
+
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    returnToMainMenu();
+                })
+                .setCancelable(false);
+        return builder;
     }
 
     private void returnToMainMenu() {
