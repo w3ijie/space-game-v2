@@ -267,12 +267,17 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     public void loadGameState() {
         SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
         if(prefs.getBoolean("stateExist", true)) {
+            // ensure integrity of data
+            int points = Math.max(0, prefs.getInt("points", 0));
+            float spaceshipSpeed = Math.max(0.1f, prefs.getFloat("spaceshipSpeed", 1f));
+            int hearts = Math.min(Math.max(prefs.getInt("hearts", 3), 1), 3);
+
             GameController.getInstance().setIsGameActive(prefs.getBoolean("isGameActive", true));
             GameController.getInstance().setIsGamePaused(prefs.getBoolean("isGamePause", true));
 
-            GameController.getInstance().setPoints(prefs.getInt("points", 0));
-            GameController.getInstance().setSpaceshipSpeed(prefs.getFloat("spaceshipSpeed", 1f));
-            GameController.getInstance().setHearts(prefs.getInt("hearts", 3));
+            GameController.getInstance().setPoints(points);
+            GameController.getInstance().setSpaceshipSpeed(spaceshipSpeed);
+            GameController.getInstance().setHearts(hearts);
         }
     }
 }
