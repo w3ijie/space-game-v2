@@ -1,8 +1,8 @@
 package com.example.space_game_v2.feature.game.logic;
 
 
+import android.content.Context;
 import android.util.Log;
-import android.widget.Space;
 
 import com.example.space_game_v2.feature.game.elements.Spaceship;
 import com.example.space_game_v2.feature.game.elements.ExplosionEventListener;
@@ -19,6 +19,7 @@ import java.util.List;
 public class GameController {
     // implement as singleton
     private static GameController instance;
+    private Context appContext; // Use application context to avoid memory leaks
 
     private boolean isGameActive = true;
     private boolean isGamePaused = false;
@@ -202,10 +203,17 @@ public class GameController {
         return points;
     }
 
+    public void setPoints(int points) {
+        this.points = points;
+    }
+
     public int getHearts() {
         return hearts;
     }
 
+    public void setHearts(int hearts) {
+        this.hearts = hearts;
+    }
 
     public void increaseSpaceshipSpeed() {
         long currentTime = System.currentTimeMillis();
@@ -217,6 +225,10 @@ public class GameController {
 
     public int getSpaceshipSpeed() {
         return spaceshipSpeed;
+    }
+
+    public void setSpaceshipSpeed(int speed) {
+        this.spaceshipSpeed = speed;
     }
 
 }
