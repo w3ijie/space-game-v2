@@ -1,5 +1,6 @@
 package com.example.space_game_v2.feature.game;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -24,6 +25,7 @@ import com.example.space_game_v2.feature.leaderboard.LeaderboardEntry;
 import com.example.space_game_v2.feature.leaderboard.LeaderboardInsertCallback;
 import com.example.space_game_v2.feature.main.MainActivity;
 import com.example.space_game_v2.feature.game.elements.Spaceship;
+import com.google.gson.Gson;
 
 import android.content.Intent;
 import androidx.appcompat.app.AlertDialog;
@@ -71,6 +73,13 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
 
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        if (prefs.getBoolean("stateExist", false)) {
+            loadGameState();
+        }
+        updateHeartsDisplay();
+        updatePointsDisplay();
+      
         // if there is a current game running but was on pause, we will resume it and render the UI of its state
         if (GameController.getInstance().isGameActive() && GameController.getInstance().isGamePaused()) {
             GameController.getInstance().resumeGame();
@@ -122,6 +131,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
     // Update the gameOver method to call endGame
     private void gameOver() {
+        clearSharedPreferences();
         // Ensure this is called on the main thread as it will update the UI
         runOnUiThread(() -> {
             int finalScore = GameController.getInstance().getPoints();
@@ -185,6 +195,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         // Stop music when activity is not visible
         stopService(new Intent(this, BackgroundMusicService.class));
         GameController.getInstance().pauseGame();
+//        saveGameState();
     }
 
     @Override
@@ -225,4 +236,34 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         });
     }
 
+    private void clearSharedPreferences() {
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        editor.putBoolean("stateExist", false);
+        editor.clear(); // Clear all data
+        editor.apply(); // Asynchronously save the changes
+    }
+
+    public void saveGameState() {
+        if (GameController.getInstance().getHearts() > 0) {
+            SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+
+            editor.putBoolean("stateExist", true);
+            editor.putInt("points", GameController.getInstance().getPoints());
+            editor.putInt("spaceshipSpeed", GameController.getInstance().getSpaceshipSpeed());
+            editor.putInt("hearts", GameController.getInstance().getHearts()); // Save lives
+
+            editor.apply();
+        }
+    }
+    public void loadGameState() {
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        if(prefs.getBoolean("stateExist", false)) {
+            GameController.getInstance().setPoints(prefs.getInt("points", 0));
+            GameController.getInstance().setSpaceshipSpeed(prefs.getInt("spaceshipSpeed", 1)); // Default to 1 if not found
+            GameController.getInstance().setHearts(prefs.getInt("hearts", 3));
+        }
+    }
 }

@@ -1,8 +1,8 @@
 package com.example.space_game_v2.feature.game.logic;
 
 
+import android.content.Context;
 import android.util.Log;
-import android.widget.Space;
 
 import com.example.space_game_v2.feature.game.elements.Spaceship;
 import com.example.space_game_v2.feature.game.elements.ExplosionEventListener;
@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class GameController {
     // implement as singleton
     private static GameController instance;
+    private Context appContext; // Use application context to avoid memory leaks
 
     // this is used to know the state of the game when the user goes in and out of the activity
     private boolean isGameActive = true;
@@ -239,10 +240,18 @@ public class GameController {
         return points;
     }
 
+    public void setPoints(int points) {
+        this.points = points;
+    }
+
     public int getHearts() {
         return hearts;
     }
 
+    public void setHearts(int hearts) {
+        this.hearts = hearts;
+    }
+  
     // dynamic element to make the game fun, increase speed over time
     public void increaseSpaceshipSpeed() {
         long currentTime = System.currentTimeMillis();
@@ -256,6 +265,10 @@ public class GameController {
 
     public float getSpaceshipSpeed() {
         return spaceshipSpeed;
+    }
+
+    public void setSpaceshipSpeed(int speed) {
+        this.spaceshipSpeed = speed;
     }
 
 }
