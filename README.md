@@ -10,12 +10,6 @@ This game challenges the player's reaction speed.
 
 ## Set up
 
-Before you run the project, make sure to
-1. File > Sync Project with Gradle Files
-   - This is to download the external libraries for making RESTful requests
-1. Build > Clean Project
-2. Build > Rebuild Project
-
 This project uses an [external API server](https://github.com/ang-rui-yan/spaceports-leaderboard) to asynchronously fetch the leaderboard. Hence, we need to add in the JWT secrets and token to be able to run the code.
 
 In your local.properties, add the following without quotations:
@@ -26,6 +20,12 @@ token=
 secret.key=
 ```
 For the professors, we have submitted the credentials to you through email.
+
+Before you run the project, make sure to
+1. File > Sync Project with Gradle Files
+   - This is to download the external libraries for making RESTful requests
+1. Build > Clean Project
+2. Build > Rebuild Project
 
 ## How to play
 
