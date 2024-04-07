@@ -27,6 +27,7 @@ import com.example.space_game_v2.feature.game.utils.GameEffects;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -143,7 +144,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
             Canvas canvas = holder.lockCanvas();
             if (canvas != null) {
                 synchronized (holder) {
-                    canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
+                    // canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
                     updateAndDrawBackground(canvas);
                     if (spaceStation != null) {
                         spaceStation.draw(canvas);
@@ -231,14 +232,10 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     private Bitmap getBitmapForSpaceship(Spaceship spaceship) {
-        switch (spaceship.getSpaceshipType()) {
-            case MONEY:
-                return scaledMoneyShipBitmap;
-            case BOMB:
-                return bombShipBitmap;
-            default:
-                return null;
+        if (Objects.requireNonNull(spaceship.getSpaceshipType()) == Spaceship.SpaceshipType.BOMB) {
+            return bombShipBitmap;
         }
+        return scaledMoneyShipBitmap;
     }
 
     public void setSpaceshipEventListener(SpaceshipEventListener listener) {

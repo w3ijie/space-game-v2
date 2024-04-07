@@ -130,6 +130,7 @@ public class GameController {
 
     public void resumeGame() {
         isGamePaused = false;
+        lastSpeedIncreaseTime = System.currentTimeMillis();
         startShipProduction();
         startAlienProduction();
     }
