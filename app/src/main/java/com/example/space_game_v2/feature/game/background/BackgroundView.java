@@ -177,7 +177,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
     private void drawSpaceships(Canvas canvas, float spaceStationY) {
         List<Spaceship> spaceships = GameController.getInstance().getCurrentSpaceships();
-        int spaceshipSpeed = GameController.getInstance().getSpaceshipSpeed();
+        float spaceshipSpeed = GameController.getInstance().getSpaceshipSpeed();
 
         for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext(); ) {
             Spaceship spaceship = iterator.next();

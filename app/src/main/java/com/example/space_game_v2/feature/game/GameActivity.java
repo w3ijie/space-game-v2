@@ -71,10 +71,12 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
 
+        // if there is a current game running but was on pause, we will resume it and render the UI of its state
         if (GameController.getInstance().isGameActive() && GameController.getInstance().isGamePaused()) {
             GameController.getInstance().resumeGame();
             updateAllUI();
         } else {
+            // start the game from afresh
             GameController.getInstance().startGame();
         }
     }
