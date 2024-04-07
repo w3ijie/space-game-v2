@@ -19,7 +19,7 @@
         <service
             android:name=".feature.game.audio.BackgroundMusicService"
             android:enabled="true"
-            android:exported="false"/> <!-- Assuming service is internal -->
+            android:exported="false"/>
 
         <activity
             android:name=".feature.leaderboard.LeaderboardActivity"
@@ -27,16 +27,15 @@
 
         <activity
             android:name=".feature.game.GameActivity"
-            android:exported="false" /> <!-- No intent filter so not exported -->
+            android:exported="false" />
 
         <activity
             android:name=".feature.main.MainActivity"
-            android:exported="true"> <!-- This activity is the entry point so it is exported -->
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- Other activities and components here -->
     </application>
 </manifest>

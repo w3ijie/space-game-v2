@@ -140,8 +140,14 @@ public class GameController {
     public boolean isGamePaused() {
         return isGamePaused;
     }
+    public void setIsGamePaused(boolean isGamePaused) {
+         this.isGamePaused = isGamePaused;
+    }
     public boolean isGameActive() {
         return isGameActive;
+    }
+    public void setIsGameActive(boolean isGameActive) {
+        this.isGameActive = isGameActive;
     }
 
     // start the game by resetting all conditions and start the producers
@@ -267,7 +273,7 @@ public class GameController {
     public void increaseSpaceshipSpeed() {
         long currentTime = System.currentTimeMillis();
         long SPEED_INCREASE_INTERVAL = 2000;
-        float SPEED_INCREASE = 0.7f;
+        float SPEED_INCREASE = 1f;
         if (currentTime - lastSpeedIncreaseTime >= SPEED_INCREASE_INTERVAL) {
             spaceshipSpeed += SPEED_INCREASE;
             lastSpeedIncreaseTime = currentTime;
@@ -278,7 +284,7 @@ public class GameController {
         return spaceshipSpeed;
     }
 
-    public void setSpaceshipSpeed(int speed) {
+    public void setSpaceshipSpeed(float speed) {
         this.spaceshipSpeed = speed;
     }
 

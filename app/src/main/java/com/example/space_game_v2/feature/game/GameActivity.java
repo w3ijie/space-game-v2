@@ -42,13 +42,14 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Hide the action bar if present (for activities with ActionBar).
+        // hide the action bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
         setContentView(R.layout.activity_game);
 
+        // load all assets
         heart1 = findViewById(R.id.heart1);
         heart2 = findViewById(R.id.heart2);
         heart3 = findViewById(R.id.heart3);
@@ -63,29 +64,26 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         buttonApprove.setOnClickListener(v -> approveSpaceship());
         buttonDisapprove.setOnClickListener(v -> disapproveSpaceship());
 
+        // Handle the back button event
         OnBackPressedCallback callback = new OnBackPressedCallback(true ) {
             @Override
             public void handleOnBackPressed() {
-                // Handle the back button event
                 GameController.getInstance().pauseGame();
                 finish();
             }
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
 
-//        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-//        if (prefs.getBoolean("stateExist", false)) {
-//            loadGameState();
-//        }
-//        updateHeartsDisplay();
-//        updatePointsDisplay();
-      
+        // load the shared preferences first
+        loadGameState();
+
         // if there is a current game running but was on pause, we will resume it and render the UI of its state
         if (GameController.getInstance().isGameActive() && GameController.getInstance().isGamePaused()) {
             GameController.getInstance().resumeGame();
             updateAllUI();
         } else {
             // start the game from afresh
+            clearGameState();
             GameController.getInstance().startGame();
         }
     }
@@ -131,7 +129,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
     // Update the gameOver method to call endGame
     private void gameOver() {
-//        clearSharedPreferences();
+        clearGameState();
         // Ensure this is called on the main thread as it will update the UI
         runOnUiThread(() -> {
             int finalScore = GameController.getInstance().getPoints();
@@ -170,7 +168,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
                         @Override
                         public void onError(String errorMessage) {
-                            runOnUiThread(() -> Toast.makeText(GameActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show());
+                            runOnUiThread(() -> Toast.makeText(GameActivity.this, "Error: No API credentials", Toast.LENGTH_SHORT).show());
                         }
                     });
                     returnToMainMenu();
@@ -184,7 +182,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     }
 
     private void returnToMainMenu() {
-        Intent intent = new Intent(this, MainActivity.class); // Replace MainActivity.class with your main menu activity class
+        Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
     }
@@ -196,13 +194,14 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         GameController.getInstance().pauseGame();
         // Stop music when activity is not visible
         stopService(new Intent(this, BackgroundMusicService.class));
-
-//        saveGameState();
+        saveGameState();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        loadGameState();
+
         backgroundView.resumeDrawing();
         if (GameController.getInstance().isGameActive() && GameController.getInstance().isGamePaused()) {
             GameController.getInstance().resumeGame();
@@ -240,35 +239,47 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         });
     }
 
-    private void clearSharedPreferences() {
+    private void clearGameState() {
         SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
-        editor.putBoolean("stateExist", false);
         editor.clear();
         editor.apply();
     }
 
     public void saveGameState() {
-        if (GameController.getInstance().getHearts() > 0) {
-            SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-            SharedPreferences.Editor editor = prefs.edit();
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
 
+        if (GameController.getInstance().isGameActive()) {
             editor.putBoolean("stateExist", true);
+            editor.putBoolean("isGameActive", true);
+            editor.putBoolean("isGamePause", true);
+
             editor.putInt("points", GameController.getInstance().getPoints());
             editor.putFloat("spaceshipSpeed", GameController.getInstance().getSpaceshipSpeed());
             editor.putInt("hearts", GameController.getInstance().getHearts());
 
             editor.apply();
+        } else {
+            editor.putBoolean("stateExist", false);
         }
     }
 
     public void loadGameState() {
         SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-        if(prefs.getBoolean("stateExist", false)) {
-            GameController.getInstance().setPoints(prefs.getInt("points", 0));
-            GameController.getInstance().setSpaceshipSpeed(prefs.getInt("spaceshipSpeed", 1)); // Default to 1 if not found
-            GameController.getInstance().setHearts(prefs.getInt("hearts", 3));
+        if(prefs.getBoolean("stateExist", true)) {
+            // ensure integrity of data
+            int points = Math.max(0, prefs.getInt("points", 0));
+            float spaceshipSpeed = Math.max(0.1f, prefs.getFloat("spaceshipSpeed", 1f));
+            int hearts = Math.min(Math.max(prefs.getInt("hearts", 3), 1), 3);
+
+            GameController.getInstance().setIsGameActive(prefs.getBoolean("isGameActive", true));
+            GameController.getInstance().setIsGamePaused(prefs.getBoolean("isGamePause", true));
+
+            GameController.getInstance().setPoints(points);
+            GameController.getInstance().setSpaceshipSpeed(spaceshipSpeed);
+            GameController.getInstance().setHearts(hearts);
         }
     }
 }

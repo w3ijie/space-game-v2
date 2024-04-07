@@ -35,6 +35,9 @@ import java.util.Random;
  */
 public class BackgroundView extends SurfaceView implements SurfaceHolder.Callback, Runnable, ExplosionEventListener {
 
+    // hold a reference to the canvas
+    private Canvas canvas;
+
     // bitmaps - render all the relevant assets
     private Bitmap backgroundBitmap;
     private Bitmap alienShipBitmap;
@@ -42,11 +45,13 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     private Bitmap bombShipBitmap;
 
 
-
     private SpaceStation spaceStation;
+
+    // register a listener when the spaceship crashes into the base
     private SpaceshipEventListener spaceshipEventListener;
 
 
+    // implement the scrolling speed for rendering the moving animation
     private float backgroundY = 0;
     private final int scrollSpeed = 3;
 
@@ -83,8 +88,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         loadAlienShipBitmap();
     }
 
-
-
+    // when the background view is created
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         // draw the station once bg has been created because it needs to know
@@ -102,6 +106,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
     }
 
+    // when the background is not in view, we need to stop the rendering
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
         boolean retry = true;
@@ -120,9 +125,11 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public void run() {
 
-//        final int FPS = 60;
-//        final long frameTime = 1000 / FPS;
-//        long startTime, timeMillis, waitTime;
+        // to implement smooth rendering of the animation and elements
+        // to smoothen out the FPS
+        final int FPS = 60;
+        final long frameTime = 1000 / FPS;
+        long startTime, timeMillis, waitTime;
 
         SurfaceHolder holder = getHolder();
 
@@ -130,12 +137,12 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
             if (!holder.getSurface().isValid()) {
                 continue;
             }
-//            startTime = System.nanoTime();
+            startTime = System.nanoTime();
 
-            Canvas canvas = holder.lockCanvas();
+            canvas = holder.lockCanvas();
             if (canvas != null) {
                 synchronized (holder) {
-                    // canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
+                    canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
                     updateAndDrawBackground(canvas);
                     if (spaceStation != null) {
                         spaceStation.draw(canvas);
@@ -147,25 +154,53 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                     drawExplosions(canvas);
                     drawAlienSpaceships(canvas);
 
-                    GameController.getInstance().increaseSpaceshipSpeed();
-
                     holder.unlockCanvasAndPost(canvas);
                 }
             }
 
-//            timeMillis = (System.nanoTime() - startTime) / 1000000;
-//            waitTime = frameTime - timeMillis;
-//
-//            try {
-//                if (waitTime > 0) {
-//                    Thread.sleep(waitTime);
-//                }
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
+            timeMillis = (System.nanoTime() - startTime) / 1000000;
+            waitTime = frameTime - timeMillis;
+
+            try {
+                if (waitTime > 0) {
+                    Thread.sleep(waitTime);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
 
         }
     }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        // release the resources
+        if (backgroundBitmap != null) {
+            backgroundBitmap.recycle();
+            backgroundBitmap = null;
+        }
+        if (alienShipBitmap != null) {
+            alienShipBitmap.recycle();
+            alienShipBitmap = null;
+        }
+        if (scaledMoneyShipBitmap != null) {
+            scaledMoneyShipBitmap.recycle();
+            scaledMoneyShipBitmap = null;
+        }
+        if (bombShipBitmap != null) {
+            bombShipBitmap.recycle();
+            bombShipBitmap = null;
+        }
+
+        // stop the drawing
+        isRunning = false;
+        if (thread != null) {
+            thread.interrupt();
+            thread = null;
+        }
+    }
+
 
     // for game activity to call
     public void pauseDrawing() {
@@ -228,6 +263,8 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                 }
             }
         }
+
+        GameController.getInstance().increaseSpaceshipSpeed();
     }
 
     private void loadMoneyShipBitmap() {
