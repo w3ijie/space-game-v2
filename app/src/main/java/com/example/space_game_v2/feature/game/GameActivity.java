@@ -1,6 +1,7 @@
 package com.example.space_game_v2.feature.game;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowInsets;
@@ -14,6 +15,8 @@ import com.example.space_game_v2.BackgroundMusicService;
 import com.example.space_game_v2.feature.game.elements.SpaceshipEventListener;
 import com.example.space_game_v2.feature.main.MainActivity;
 import com.example.space_game_v2.feature.game.elements.Spaceship;
+import android.content.SharedPreferences;
+
 
 import android.content.Intent;
 import androidx.appcompat.app.AlertDialog;
@@ -51,6 +54,14 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
         buttonApprove.setOnClickListener(v -> approveSpaceship());
         buttonDisapprove.setOnClickListener(v -> disapproveSpaceship());
+
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        if (prefs.getBoolean("stateExist", false)) {
+            lives = prefs.getInt("lives", 3);
+            scrollingBackgroundView.loadGameState();
+        }
+        updateLivesDisplay();
+        updateEconomyDisplay();
     }
 
     private void approveSpaceship() {
@@ -114,8 +125,8 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
     // Update the gameOver method to call endGame
     private void gameOver() {
+        clearSharedPreferences();
         endGame();
-
     }
 
     private void updateEconomyDisplay() {
@@ -134,6 +145,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         // Stop music when activity is not visible
         stopService(new Intent(this, BackgroundMusicService.class));
         scrollingBackgroundView.pause();
+        scrollingBackgroundView.saveGameState(lives);
     }
 
     @Override
@@ -151,6 +163,14 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
                 controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
             }
         }
+    }
+    private void clearSharedPreferences() {
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        editor.putBoolean("stateExist", false);
+        editor.clear(); // Clear all data
+        editor.apply(); // Asynchronously save the changes
     }
 
 }

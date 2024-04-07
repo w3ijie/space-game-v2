@@ -21,6 +21,10 @@ import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import android.content.SharedPreferences;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
 
 import com.example.space_game_v2.R;
 import android.media.MediaPlayer;
@@ -439,4 +443,42 @@ public class ScrollingBackgroundView extends SurfaceView implements SurfaceHolde
         // Pass the event up to the parent class if it's not a touch down action
         return super.onTouchEvent(event);
     }
+
+    public void saveGameState(int lives) {
+        if (lives > 0) {
+            SharedPreferences prefs = getContext().getSharedPreferences("GamePrefs", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+
+            editor.putBoolean("stateExist", true);
+            editor.putInt("economy", economy);
+            editor.putInt("spaceshipSpeed", spaceshipSpeed);
+            editor.putInt("scrollSpeed", scrollSpeed);
+            editor.putInt("lives", lives); // Save lives
+
+            // Convert the list of Spaceship objects to JSON string
+            Gson gson = new Gson();
+            String jsonSpaceships = gson.toJson(spaceships);
+            editor.putString("spaceships", jsonSpaceships);
+
+            editor.apply();
+        }
+    }
+    public void loadGameState() {
+        SharedPreferences prefs = getContext().getSharedPreferences("GamePrefs", Context.MODE_PRIVATE);
+        if(prefs.getBoolean("stateExist", false)) {
+            economy = prefs.getInt("economy", 0);
+            spaceshipSpeed = prefs.getInt("spaceshipSpeed", 1); // Default to 1 if not found
+
+            // Deserialize the list of Spaceship objects from JSON string
+            Gson gson = new Gson();
+            String jsonSpaceships = prefs.getString("spaceships", null);
+            if (jsonSpaceships != null) {
+                Type spaceshipListType = new TypeToken<List<Spaceship>>(){}.getType();
+                List<Spaceship> loadedSpaceships = gson.fromJson(jsonSpaceships, spaceshipListType);
+                spaceships.clear();
+                spaceships.addAll(loadedSpaceships);
+            }
+        }
+    }
+
 }
