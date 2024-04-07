@@ -175,7 +175,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        // Release each bitmap resource
+        // release the resources
         if (backgroundBitmap != null) {
             backgroundBitmap.recycle();
             backgroundBitmap = null;
@@ -193,7 +193,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
             bombShipBitmap = null;
         }
 
-        // Interrupt the drawing thread to ensure it stops running
+        // stop the drawing
         isRunning = false;
         if (thread != null) {
             thread.interrupt();
