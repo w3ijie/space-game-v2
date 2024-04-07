@@ -4,16 +4,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import com.example.space_game_v2.R;
 import com.example.space_game_v2.feature.game.elements.Explosion;
@@ -27,10 +24,8 @@ import com.example.space_game_v2.feature.game.utils.GameEffects;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * BackgroundView
@@ -44,7 +39,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     private Bitmap backgroundBitmap;
     private Bitmap alienShipBitmap;
     private Bitmap scaledMoneyShipBitmap;
-    private Bitmap bombShipBitmap, moneyShipBitmap;
+    private Bitmap bombShipBitmap;
 
 
 
@@ -60,7 +55,6 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     private List<Explosion> explosions = new ArrayList<>();
 
 
-    private ScheduledExecutorService scheduler;
     private Thread thread;
 
 
@@ -87,8 +81,6 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         loadMoneyShipBitmap();
         loadBombShipBitmap();
         loadAlienShipBitmap();
-
-        scheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
 
@@ -109,10 +101,6 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-
-        if (scheduler != null && !scheduler.isShutdown()) {
-            scheduler.shutdownNow();
-        }
         boolean retry = true;
         isRunning = false;
         while (retry) {
@@ -143,7 +131,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
             Canvas canvas = holder.lockCanvas();
             if (canvas != null) {
                 synchronized (holder) {
-                    canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
+                    // canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
                     updateAndDrawBackground(canvas);
                     if (spaceStation != null) {
                         spaceStation.draw(canvas);
@@ -189,7 +177,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
     private void drawSpaceships(Canvas canvas, float spaceStationY) {
         List<Spaceship> spaceships = GameController.getInstance().getCurrentSpaceships();
-        int spaceshipSpeed = GameController.getInstance().getSpaceshipSpeed();
+        float spaceshipSpeed = GameController.getInstance().getSpaceshipSpeed();
 
         for (Iterator<Spaceship> iterator = spaceships.iterator(); iterator.hasNext(); ) {
             Spaceship spaceship = iterator.next();
@@ -231,14 +219,10 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     private Bitmap getBitmapForSpaceship(Spaceship spaceship) {
-        switch (spaceship.getSpaceshipType()) {
-            case MONEY:
-                return scaledMoneyShipBitmap;
-            case BOMB:
-                return bombShipBitmap;
-            default:
-                return null;
+        if (Objects.requireNonNull(spaceship.getSpaceshipType()) == Spaceship.SpaceshipType.BOMB) {
+            return bombShipBitmap;
         }
+        return scaledMoneyShipBitmap;
     }
 
     public void setSpaceshipEventListener(SpaceshipEventListener listener) {
