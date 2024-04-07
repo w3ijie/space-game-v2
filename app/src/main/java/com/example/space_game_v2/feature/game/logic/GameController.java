@@ -6,9 +6,12 @@ import android.widget.Space;
 
 import com.example.space_game_v2.feature.game.elements.Spaceship;
 import com.example.space_game_v2.feature.game.elements.ExplosionEventListener;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /** GameController
  * - Implement game logic here, handle spaceship management, economy, user interactions.
@@ -38,7 +41,7 @@ public class GameController {
     private final int MAX_QUEUE_SIZE = 6;
     private ExplosionEventListener explosionEventListener;
     private ShipProducer shipProducer;
-    private AlienProducer alienProducer;
+    private final ScheduledExecutorService alienScheduler = Executors.newSingleThreadScheduledExecutor();
 
 
     public static synchronized GameController getInstance() {
@@ -179,18 +182,21 @@ public class GameController {
     }
 
     public void startAlienProduction() {
-        if (alienProducer == null || !alienProducer.isAlive()) {
-            alienProducer = new AlienProducer(this);
-            alienProducer.start();
-        }
+        alienScheduler.scheduleAtFixedRate(() -> {
+            if (isGameActive && !isGamePaused) {
+                try {
+                    addAliens();
+                    Log.i("GameController", "Alien added");
+                } catch (Exception e) {
+                    Log.e("GameController", "Error adding alien", e);
+                }
+            }
+        }, 1, 10, TimeUnit.SECONDS);
     }
 
     public void stopAlienProduction() {
-        if (alienProducer != null) {
-            alienProducer.interrupt();
-        }
+        alienScheduler.shutdownNow();
     }
-
 
     // In GameController
     public void decrementHeart() {

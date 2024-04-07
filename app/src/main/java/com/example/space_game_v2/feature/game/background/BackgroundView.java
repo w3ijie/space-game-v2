@@ -88,8 +88,6 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         loadMoneyShipBitmap();
         loadBombShipBitmap();
         loadAlienShipBitmap();
-
-        scheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
 
