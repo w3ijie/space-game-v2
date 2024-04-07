@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void accessScoreBoard(View v) {
-        // Code to access scoreboard here
+        // access scoreboard here
         startActivity(new Intent(MainActivity.this, LeaderboardActivity.class));
     }
 

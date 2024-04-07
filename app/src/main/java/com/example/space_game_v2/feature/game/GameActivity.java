@@ -42,13 +42,14 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Hide the action bar if present (for activities with ActionBar).
+        // hide the action bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
         setContentView(R.layout.activity_game);
 
+        // load all assets
         heart1 = findViewById(R.id.heart1);
         heart2 = findViewById(R.id.heart2);
         heart3 = findViewById(R.id.heart3);
@@ -63,16 +64,17 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         buttonApprove.setOnClickListener(v -> approveSpaceship());
         buttonDisapprove.setOnClickListener(v -> disapproveSpaceship());
 
+        // Handle the back button event
         OnBackPressedCallback callback = new OnBackPressedCallback(true ) {
             @Override
             public void handleOnBackPressed() {
-                // Handle the back button event
                 GameController.getInstance().pauseGame();
                 finish();
             }
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
 
+        // load the shared preferences first
         loadGameState();
 
         // if there is a current game running but was on pause, we will resume it and render the UI of its state
@@ -180,7 +182,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     }
 
     private void returnToMainMenu() {
-        Intent intent = new Intent(this, MainActivity.class); // Replace MainActivity.class with your main menu activity class
+        Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
     }
