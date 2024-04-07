@@ -90,8 +90,11 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         // draw the station once bg has been created because it needs to know
         spaceStation = new SpaceStation(getContext(), getWidth(), getHeight());
 
-        thread = new Thread(this);
-        thread.start();
+        if (thread == null || !thread.isAlive()) {
+            thread = new Thread(this);
+            isRunning = true;
+            thread.start();
+        }
     }
 
     @Override
@@ -108,6 +111,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                 thread.join();
                 retry = false;
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
 
@@ -116,9 +120,9 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public void run() {
 
-        final int FPS = 60;
-        final long frameTime = 1000 / FPS;
-        long startTime, timeMillis, waitTime;
+//        final int FPS = 60;
+//        final long frameTime = 1000 / FPS;
+//        long startTime, timeMillis, waitTime;
 
         SurfaceHolder holder = getHolder();
 
@@ -126,7 +130,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
             if (!holder.getSurface().isValid()) {
                 continue;
             }
-            startTime = System.nanoTime();
+//            startTime = System.nanoTime();
 
             Canvas canvas = holder.lockCanvas();
             if (canvas != null) {
@@ -149,17 +153,42 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                 }
             }
 
-            timeMillis = (System.nanoTime() - startTime) / 1000000;
-            waitTime = frameTime - timeMillis;
+//            timeMillis = (System.nanoTime() - startTime) / 1000000;
+//            waitTime = frameTime - timeMillis;
+//
+//            try {
+//                if (waitTime > 0) {
+//                    Thread.sleep(waitTime);
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
+        }
+    }
+
+    // for game activity to call
+    public void pauseDrawing() {
+        isRunning = false;
+        boolean retry = true;
+        while (retry) {
             try {
-                if (waitTime > 0) {
-                    Thread.sleep(waitTime);
+                if (thread != null) {
+                    thread.join();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+                retry = false;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
+        }
+    }
 
+    // for the game activity to call
+    public void resumeDrawing() {
+        if (!isRunning && getHolder().getSurface().isValid()) {
+            isRunning = true;
+            thread = new Thread(this);
+            thread.start();
         }
     }
 

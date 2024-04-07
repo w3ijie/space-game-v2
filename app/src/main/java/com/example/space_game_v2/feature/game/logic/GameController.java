@@ -54,7 +54,7 @@ public class GameController {
     private ShipProducer shipProducer;
 
     // advanced android feature
-    private final ScheduledExecutorService alienScheduler = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService alienScheduler = Executors.newSingleThreadScheduledExecutor();
 
     // necessary for singleton
     public static synchronized GameController getInstance() {
@@ -212,6 +212,12 @@ public class GameController {
 
     // use of advanced android multithreading here
     public void startAlienProduction() {
+        if (this.alienScheduler != null && !alienScheduler.isShutdown()) {
+            alienScheduler.shutdownNow();
+        }
+
+        final ScheduledExecutorService alienScheduler = Executors.newSingleThreadScheduledExecutor();
+
         alienScheduler.scheduleAtFixedRate(() -> {
             if (isGameActive && !isGamePaused) {
                 try {
@@ -222,11 +228,16 @@ public class GameController {
                 }
             }
         }, 1, 10, TimeUnit.SECONDS);
+
+        this.alienScheduler = alienScheduler;
     }
 
     // stop the production
     public void stopAlienProduction() {
-        alienScheduler.shutdownNow();
+        if (alienScheduler != null && !alienScheduler.isShutdown()) {
+            alienScheduler.shutdownNow();
+        }
+         alienScheduler = null;
     }
 
     // In GameController

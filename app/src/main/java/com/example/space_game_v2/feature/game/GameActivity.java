@@ -63,7 +63,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         buttonApprove.setOnClickListener(v -> approveSpaceship());
         buttonDisapprove.setOnClickListener(v -> disapproveSpaceship());
 
-        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+        OnBackPressedCallback callback = new OnBackPressedCallback(true ) {
             @Override
             public void handleOnBackPressed() {
                 // Handle the back button event
@@ -73,12 +73,12 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
 
-        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-        if (prefs.getBoolean("stateExist", false)) {
-            loadGameState();
-        }
-        updateHeartsDisplay();
-        updatePointsDisplay();
+//        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+//        if (prefs.getBoolean("stateExist", false)) {
+//            loadGameState();
+//        }
+//        updateHeartsDisplay();
+//        updatePointsDisplay();
       
         // if there is a current game running but was on pause, we will resume it and render the UI of its state
         if (GameController.getInstance().isGameActive() && GameController.getInstance().isGamePaused()) {
@@ -131,7 +131,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
     // Update the gameOver method to call endGame
     private void gameOver() {
-        clearSharedPreferences();
+//        clearSharedPreferences();
         // Ensure this is called on the main thread as it will update the UI
         runOnUiThread(() -> {
             int finalScore = GameController.getInstance().getPoints();
@@ -192,22 +192,26 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
     @Override
     protected void onPause() {
         super.onPause();
+        backgroundView.pauseDrawing();
+        GameController.getInstance().pauseGame();
         // Stop music when activity is not visible
         stopService(new Intent(this, BackgroundMusicService.class));
-        GameController.getInstance().pauseGame();
+
 //        saveGameState();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        backgroundView.resumeDrawing();
+        if (GameController.getInstance().isGameActive() && GameController.getInstance().isGamePaused()) {
+            GameController.getInstance().resumeGame();
+        }
+
         // Resume music when activity is back
         startService(new Intent(this, BackgroundMusicService.class));
 
-        if (!GameController.getInstance().isGameActive()) {
-            GameController.getInstance().resumeGame();
-            updateAllUI();
-        }
+        updateAllUI();
 
         Window window = getWindow();
         if (window != null) {
@@ -241,8 +245,8 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         SharedPreferences.Editor editor = prefs.edit();
 
         editor.putBoolean("stateExist", false);
-        editor.clear(); // Clear all data
-        editor.apply(); // Asynchronously save the changes
+        editor.clear();
+        editor.apply();
     }
 
     public void saveGameState() {
@@ -252,12 +256,13 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
             editor.putBoolean("stateExist", true);
             editor.putInt("points", GameController.getInstance().getPoints());
-            editor.putInt("spaceshipSpeed", GameController.getInstance().getSpaceshipSpeed());
-            editor.putInt("hearts", GameController.getInstance().getHearts()); // Save lives
+            editor.putFloat("spaceshipSpeed", GameController.getInstance().getSpaceshipSpeed());
+            editor.putInt("hearts", GameController.getInstance().getHearts());
 
             editor.apply();
         }
     }
+
     public void loadGameState() {
         SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
         if(prefs.getBoolean("stateExist", false)) {
