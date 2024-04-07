@@ -4,16 +4,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import com.example.space_game_v2.R;
 import com.example.space_game_v2.feature.game.elements.Explosion;
@@ -29,9 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * BackgroundView
@@ -45,7 +39,7 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     private Bitmap backgroundBitmap;
     private Bitmap alienShipBitmap;
     private Bitmap scaledMoneyShipBitmap;
-    private Bitmap bombShipBitmap, moneyShipBitmap;
+    private Bitmap bombShipBitmap;
 
 
 
@@ -61,7 +55,6 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     private List<Explosion> explosions = new ArrayList<>();
 
 
-    private ScheduledExecutorService scheduler;
     private Thread thread;
 
 
@@ -108,10 +101,6 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-
-        if (scheduler != null && !scheduler.isShutdown()) {
-            scheduler.shutdownNow();
-        }
         boolean retry = true;
         isRunning = false;
         while (retry) {
