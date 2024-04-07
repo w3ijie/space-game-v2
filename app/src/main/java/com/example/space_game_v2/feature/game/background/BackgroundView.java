@@ -83,8 +83,6 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
         loadAlienShipBitmap();
     }
 
-
-
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         // draw the station once bg has been created because it needs to know
@@ -120,9 +118,9 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public void run() {
 
-//        final int FPS = 60;
-//        final long frameTime = 1000 / FPS;
-//        long startTime, timeMillis, waitTime;
+        final int FPS = 60;
+        final long frameTime = 1000 / FPS;
+        long startTime, timeMillis, waitTime;
 
         SurfaceHolder holder = getHolder();
 
@@ -130,12 +128,12 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
             if (!holder.getSurface().isValid()) {
                 continue;
             }
-//            startTime = System.nanoTime();
+            startTime = System.nanoTime();
 
             Canvas canvas = holder.lockCanvas();
             if (canvas != null) {
                 synchronized (holder) {
-                    // canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
+                     canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
                     updateAndDrawBackground(canvas);
                     if (spaceStation != null) {
                         spaceStation.draw(canvas);
@@ -147,22 +145,20 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                     drawExplosions(canvas);
                     drawAlienSpaceships(canvas);
 
-                    GameController.getInstance().increaseSpaceshipSpeed();
-
                     holder.unlockCanvasAndPost(canvas);
                 }
             }
 
-//            timeMillis = (System.nanoTime() - startTime) / 1000000;
-//            waitTime = frameTime - timeMillis;
-//
-//            try {
-//                if (waitTime > 0) {
-//                    Thread.sleep(waitTime);
-//                }
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
+            timeMillis = (System.nanoTime() - startTime) / 1000000;
+            waitTime = frameTime - timeMillis;
+
+            try {
+                if (waitTime > 0) {
+                    Thread.sleep(waitTime);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
         }
     }
@@ -228,6 +224,8 @@ public class BackgroundView extends SurfaceView implements SurfaceHolder.Callbac
                 }
             }
         }
+
+        GameController.getInstance().increaseSpaceshipSpeed();
     }
 
     private void loadMoneyShipBitmap() {

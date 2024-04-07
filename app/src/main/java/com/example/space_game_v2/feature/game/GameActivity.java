@@ -73,19 +73,15 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
 
-//        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-//        if (prefs.getBoolean("stateExist", false)) {
-//            loadGameState();
-//        }
-//        updateHeartsDisplay();
-//        updatePointsDisplay();
-      
+        loadGameState();
+
         // if there is a current game running but was on pause, we will resume it and render the UI of its state
         if (GameController.getInstance().isGameActive() && GameController.getInstance().isGamePaused()) {
             GameController.getInstance().resumeGame();
             updateAllUI();
         } else {
             // start the game from afresh
+            clearGameState();
             GameController.getInstance().startGame();
         }
     }
@@ -131,7 +127,7 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
 
     // Update the gameOver method to call endGame
     private void gameOver() {
-//        clearSharedPreferences();
+        clearGameState();
         // Ensure this is called on the main thread as it will update the UI
         runOnUiThread(() -> {
             int finalScore = GameController.getInstance().getPoints();
@@ -196,13 +192,14 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         GameController.getInstance().pauseGame();
         // Stop music when activity is not visible
         stopService(new Intent(this, BackgroundMusicService.class));
-
-//        saveGameState();
+        saveGameState();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        loadGameState();
+
         backgroundView.resumeDrawing();
         if (GameController.getInstance().isGameActive() && GameController.getInstance().isGamePaused()) {
             GameController.getInstance().resumeGame();
@@ -240,34 +237,41 @@ public class GameActivity extends AppCompatActivity implements SpaceshipEventLis
         });
     }
 
-    private void clearSharedPreferences() {
+    private void clearGameState() {
         SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
-        editor.putBoolean("stateExist", false);
         editor.clear();
         editor.apply();
     }
 
     public void saveGameState() {
-        if (GameController.getInstance().getHearts() > 0) {
-            SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-            SharedPreferences.Editor editor = prefs.edit();
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
 
+        if (GameController.getInstance().isGameActive()) {
             editor.putBoolean("stateExist", true);
+            editor.putBoolean("isGameActive", true);
+            editor.putBoolean("isGamePause", true);
+
             editor.putInt("points", GameController.getInstance().getPoints());
             editor.putFloat("spaceshipSpeed", GameController.getInstance().getSpaceshipSpeed());
             editor.putInt("hearts", GameController.getInstance().getHearts());
 
             editor.apply();
+        } else {
+            editor.putBoolean("stateExist", false);
         }
     }
 
     public void loadGameState() {
         SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-        if(prefs.getBoolean("stateExist", false)) {
+        if(prefs.getBoolean("stateExist", true)) {
+            GameController.getInstance().setIsGameActive(prefs.getBoolean("isGameActive", true));
+            GameController.getInstance().setIsGamePaused(prefs.getBoolean("isGamePause", true));
+
             GameController.getInstance().setPoints(prefs.getInt("points", 0));
-            GameController.getInstance().setSpaceshipSpeed(prefs.getInt("spaceshipSpeed", 1)); // Default to 1 if not found
+            GameController.getInstance().setSpaceshipSpeed(prefs.getFloat("spaceshipSpeed", 1f));
             GameController.getInstance().setHearts(prefs.getInt("hearts", 3));
         }
     }
